@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont } from "pdf-lib";
 import type { CampanhaComEstatisticas } from "@/types/database";
 import { formatPeriodo } from "@/lib/utils";
 
@@ -6,6 +6,18 @@ const NAVY = rgb(15 / 255, 32 / 255, 68 / 255);
 const GOLD = rgb(201 / 255, 162 / 255, 75 / 255);
 const MUTED = rgb(122 / 255, 127 / 255, 135 / 255);
 const LINE = rgb(227 / 255, 229 / 255, 233 / 255);
+
+/**
+ * As fontes padrão do PDF (Helvetica) só codificam o alfabeto latino
+ * (WinAnsi). Qualquer outro caractere — emoji, estrela ★, aspas especiais —
+ * faz a geração do PDF falhar. Aqui trocamos o que a fonte não suporta por "?".
+ */
+function textoSeguro(fonte: PDFFont, texto: string): string {
+  const suportados = new Set(fonte.getCharacterSet());
+  return Array.from(texto)
+    .map((c) => (suportados.has(c.codePointAt(0)!) ? c : "?"))
+    .join("");
+}
 
 /**
  * Gera um PDF com o resumo de cada campanha de pesquisa (pergunta,
@@ -61,7 +73,7 @@ export async function gerarPdfPesquisa(campanhas: CampanhaComEstatisticas[]): Pr
     });
     y -= 22;
 
-    page.drawText(campanha.pergunta, { x: margin, y, size: 13, font: fontBold, color: NAVY });
+    page.drawText(textoSeguro(fontBold, campanha.pergunta), { x: margin, y, size: 13, font: fontBold, color: NAVY });
     const statusLabel = campanha.status === "ativa" ? "No ar" : "Pausada";
     page.drawText(statusLabel, {
       x: pageWidth - margin - font.widthOfTextAtSize(statusLabel, 9) - 4,
@@ -91,10 +103,10 @@ export async function gerarPdfPesquisa(campanhas: CampanhaComEstatisticas[]): Pr
     campanha.distribuicao.forEach((count, idx) => {
       const rowY = y - idx * rowHeight;
       const estrela = idx + 1;
-      page.drawText(`${estrela}★`, { x: barsX, y: rowY - 10, size: 8.5, font, color: MUTED });
+      page.drawText(`${estrela} ${estrela === 1 ? "estrela" : "estrelas"}`, { x: barsX, y: rowY - 10, size: 8.5, font, color: MUTED });
 
-      const trackX = barsX + 24;
-      const trackWidth = barsWidth - 24 - 30;
+      const trackX = barsX + 46;
+      const trackWidth = barsWidth - 46 - 30;
       page.drawRectangle({
         x: trackX,
         y: rowY - 12,
