@@ -37,13 +37,18 @@ cp .env.local.example .env.local
 
 ## 3. Rodar o banco de dados
 
-No SQL Editor do Supabase (ou via `supabase db push` com a CLI), rode
-nesta ordem:
+O banco é versionado em `supabase/migrations/` (ordem cronológica). Cada
+migration tem um rollback correspondente em `supabase/rollback/`. Use a
+Supabase CLI (`supabase db push`) ou aplique os arquivos, em ordem, no SQL
+Editor. **Aplique sempre primeiro no projeto de teste (staging).**
 
-1. `supabase/schema.sql` — tabelas, RLS, funções e triggers.
-2. `supabase/storage.sql` — buckets `logos` e `obras` e políticas de acesso.
-3. `supabase/seed.sql` (opcional) — dados de exemplo para testar o portal
-   antes da primeira importação real do Sienge.
+1. `20260930120000_baseline_schema.sql` — tabelas, RLS, funções e triggers.
+2. `20260930120100_baseline_storage.sql` — buckets `logos` e `obras`.
+3. `20260930130000_fase1_endurecimento_banco.sql` — políticas por comando,
+   funções não expostas via API, limites de upload e índices.
+4. `supabase/seed.sql` (opcional, só em teste) — dados de exemplo.
+
+Plano completo de segurança, LGPD e operação: `docs/PLANO-DE-SEGURANCA.md`.
 
 ## 4. Criar o primeiro administrador
 
@@ -142,8 +147,8 @@ src/
   lib/             clients Supabase, auth, exportação, dados, utils
   types/           tipos das tabelas do banco
 supabase/
-  schema.sql       tabelas, RLS, funções, triggers
-  storage.sql      buckets e políticas de storage
+  migrations/      schema versionado (tabelas, RLS, storage)
+  rollback/        scripts que desfazem cada migration
   seed.sql         dados de exemplo (opcional)
   functions/
     cpf-login/     Edge Function do login por CPF
