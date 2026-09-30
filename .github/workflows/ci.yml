@@ -1,0 +1,46 @@
+name: Verificações automáticas
+
+# Roda a cada mudança proposta (Pull Request) e a cada mudança na main.
+# Se qualquer etapa falhar, o PR fica marcado em vermelho.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Tipos, segurança das dependências e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Conferir tipos (TypeScript)
+        run: npx tsc --noEmit
+
+      - name: Vulnerabilidades conhecidas nas dependências
+        run: npm audit --audit-level=high
+
+      - name: Build de produção
+        run: npm run build
+        env:
+          # Valores de mentira: o build só precisa que as variáveis existam.
+          NEXT_PUBLIC_SUPABASE_URL: https://exemplo.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-de-teste
+          SUPABASE_SERVICE_ROLE_KEY: chave-de-teste
+          SESSION_SECRET: segredo-de-teste-segredo-de-teste-1234
