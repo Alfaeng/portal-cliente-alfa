@@ -1,0 +1,22 @@
+# Verifica toda semana se há versões novas das dependências e abre um PR
+# quando houver. Atualizações de segurança são abertas assim que saem.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "08:00"
+      timezone: America/Fortaleza
+    open-pull-requests-limit: 5
+    groups:
+      atualizacoes-menores:
+        update-types: [minor, patch]
+    labels: [dependencias]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    labels: [dependencias]
