@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
+import { campo, idSchema } from "@/lib/validation";
 
 export interface PesquisaFormState {
   error?: string;
@@ -25,8 +26,9 @@ export async function publicarPergunta(
   const usuario = await exigirAdmin(["editor_completo", "administrador"]);
   const supabase = createSupabaseServerClient();
 
-  const pergunta = String(formData.get("pergunta") ?? "").trim();
-  if (!pergunta) return { error: "Escreva a pergunta da pesquisa." };
+  const pergunta = campo(formData, "pergunta").trim();
+  if (pergunta.length < 5) return { error: "Escreva a pergunta da pesquisa (mínimo de 5 caracteres)." };
+  if (pergunta.length > 200) return { error: "A pergunta pode ter no máximo 200 caracteres." };
 
   await pausarTodasAtivas(supabase);
 
@@ -46,6 +48,7 @@ export async function publicarPergunta(
 
 export async function pausarCampanha(id: string) {
   await exigirAdmin(["editor_completo", "administrador"]);
+  if (!idSchema.safeParse(id).success) return;
   const supabase = createSupabaseServerClient();
 
   await supabase
@@ -63,6 +66,7 @@ export async function pausarCampanha(id: string) {
 
 export async function reativarCampanha(id: string) {
   await exigirAdmin(["editor_completo", "administrador"]);
+  if (!idSchema.safeParse(id).success) return;
   const supabase = createSupabaseServerClient();
 
   await pausarTodasAtivas(supabase);
@@ -80,6 +84,7 @@ export async function reativarCampanha(id: string) {
 // apagar nada — só uma campanha já pausada pode ser ocultada.
 export async function ocultarCampanha(id: string) {
   await exigirAdmin(["editor_completo", "administrador"]);
+  if (!idSchema.safeParse(id).success) return;
   const supabase = createSupabaseServerClient();
 
   await supabase
@@ -95,6 +100,7 @@ export async function ocultarCampanha(id: string) {
 // reativar ou exportar normalmente.
 export async function reexibirCampanha(id: string) {
   await exigirAdmin(["editor_completo", "administrador"]);
+  if (!idSchema.safeParse(id).success) return;
   const supabase = createSupabaseServerClient();
 
   await supabase
@@ -112,8 +118,9 @@ export async function excluirCampanha(formData: FormData): Promise<void> {
   await exigirAdmin(["editor_completo", "administrador"]);
   const supabase = createSupabaseServerClient();
 
-  const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  const parsed = idSchema.safeParse(campo(formData, "id"));
+  if (!parsed.success) return;
+  const id = parsed.data;
 
   await supabase.from("campanhas_pesquisa").delete().eq("id", id);
 
@@ -126,8 +133,9 @@ export async function limparRespostasCampanha(formData: FormData): Promise<void>
   await exigirAdmin(["editor_completo", "administrador"]);
   const supabase = createSupabaseServerClient();
 
-  const id = String(formData.get("id") ?? "");
-  if (!id) return;
+  const parsed = idSchema.safeParse(campo(formData, "id"));
+  if (!parsed.success) return;
+  const id = parsed.data;
 
   await supabase.from("respostas_pesquisa").delete().eq("campanha_id", id);
 

@@ -6,6 +6,20 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
 import { z } from "zod";
 import { cpfValido, onlyDigits, slugify } from "@/lib/utils";
+import { campo, emailSchema, idSchema, telefoneSchema } from "@/lib/validation";
+
+const LIMITE_CSV_BYTES = 2 * 1024 * 1024;
+const LIMITE_CSV_LINHAS = 10000;
+
+function emailOuNulo(valor: string | undefined): string | null {
+  const r = emailSchema.safeParse((valor ?? "").trim());
+  return r.success ? r.data : null;
+}
+
+function telefoneOuNulo(valor: string | undefined): string | null {
+  const r = telefoneSchema.safeParse((valor ?? "").trim());
+  return r.success && r.data ? r.data : null;
+}
 
 export interface ImportState {
   error?: string;
@@ -30,6 +44,10 @@ export async function importarClientesCsv(
     return { error: "Selecione o arquivo CSV exportado do Sienge." };
   }
 
+  if (arquivo.size > LIMITE_CSV_BYTES) {
+    return { error: "O arquivo passa de 2 MB. Divida a planilha em partes menores." };
+  }
+
   const texto = await arquivo.text();
   const { data } = Papa.parse<Record<string, string>>(texto, {
     header: true,
@@ -45,6 +63,10 @@ export async function importarClientesCsv(
     obraPorChave.set(slugify(obra.nome), obra.id);
   }
 
+  if (data.length > LIMITE_CSV_LINHAS) {
+    return { error: `A planilha tem mais de ${LIMITE_CSV_LINHAS} linhas. Divida em partes menores.` };
+  }
+
   const linhasValidas: { cpf: string; nome: string; email: string | null; telefone: string | null; ativo: boolean }[] = [];
   const obrasDoCpf = new Map<string, Set<string>>();
   const naoEncontradas = new Set<string>();
@@ -53,15 +75,15 @@ export async function importarClientesCsv(
   for (const linha of data) {
     const cpf = onlyDigits(linha.cpf ?? "");
     const nome = (linha.nome ?? "").trim();
-    if (!cpfValido(cpf) || !nome) {
+    if (!cpfValido(cpf) || !nome || nome.length > 120) {
       ignorados += 1;
       continue;
     }
     linhasValidas.push({
       cpf,
       nome,
-      email: (linha.email ?? "").trim() || null,
-      telefone: (linha.telefone ?? "").trim() || null,
+      email: emailOuNulo(linha.email),
+      telefone: telefoneOuNulo(linha.telefone),
       ativo: true,
     });
 
@@ -130,13 +152,20 @@ export async function criarClienteManual(
   await exigirAdmin(["administrador"]);
   const supabase = createSupabaseServerClient();
 
-  const cpf = onlyDigits(String(formData.get("cpf") ?? ""));
-  const nome = String(formData.get("nome") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
-  const telefone = String(formData.get("telefone") ?? "").trim();
+  const cpf = onlyDigits(campo(formData, "cpf"));
+  const nome = campo(formData, "nome").trim();
+  const emailBruto = campo(formData, "email").trim();
+  const telefoneBruto = campo(formData, "telefone").trim();
 
   if (!cpfValido(cpf)) return { error: "CPF inválido. Confira os números digitados." };
   if (!nome) return { error: "Digite o nome do cliente." };
+  if (nome.length > 120) return { error: "O nome pode ter no máximo 120 caracteres." };
+  if (emailBruto && !emailSchema.safeParse(emailBruto).success) return { error: "E-mail inválido." };
+  if (telefoneBruto && !telefoneSchema.safeParse(telefoneBruto).success) {
+    return { error: "Telefone inválido. Use só números, espaço, ( ) + e -." };
+  }
+  const email = emailBruto ? emailSchema.parse(emailBruto) : "";
+  const telefone = telefoneBruto;
 
   const { error } = await supabase.from("clientes").insert({
     cpf,
@@ -164,14 +193,14 @@ export async function atualizarCliente(id: string, nome: string, email: string, 
   const supabase = createSupabaseServerClient();
 
   const nomeLimpo = nome.trim();
-  if (!id || !nomeLimpo) return;
+  if (!idSchema.safeParse(id).success || !nomeLimpo || nomeLimpo.length > 120) return;
 
   await supabase
     .from("clientes")
     .update({
       nome: nomeLimpo,
-      email: email.trim() || null,
-      telefone: telefone.trim() || null,
+      email: emailOuNulo(email),
+      telefone: telefoneOuNulo(telefone),
     })
     .eq("id", id);
 
@@ -190,7 +219,7 @@ export async function excluirCliente(id: string): Promise<ExcluirClienteState> {
   await exigirAdmin(["administrador"]);
   const supabase = createSupabaseServerClient();
 
-  if (!id) return {};
+  if (!idSchema.safeParse(id).success) return {};
 
   const { error } = await supabase.from("clientes").delete().eq("id", id);
 
