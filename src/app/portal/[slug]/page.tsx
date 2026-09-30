@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -7,6 +8,7 @@ import { ProgressDonut } from "@/components/cliente/ProgressDonut";
 import { StageBar } from "@/components/cliente/StageBar";
 import { Gallery } from "@/components/cliente/Gallery";
 import { buscarEmpreendimentoPorSlug } from "@/lib/data/empreendimentos";
+import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
 import { formatDateLong } from "@/lib/utils";
 
 // Sem isso, o Next tende a cachear esta página estaticamente na primeira
@@ -17,7 +19,10 @@ import { formatDateLong } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function EmpreendimentoPage({ params }: { params: { slug: string } }) {
-  const detalhe = await buscarEmpreendimentoPorSlug(params.slug);
+  const sessao = await lerSessaoCliente(cookies().get(CLIENTE_SESSION_COOKIE)?.value);
+  if (!sessao) notFound();
+
+  const detalhe = await buscarEmpreendimentoPorSlug(params.slug, sessao.clienteId);
   if (!detalhe) notFound();
 
   const { empreendimento, etapasVisiveis, fotos } = detalhe;

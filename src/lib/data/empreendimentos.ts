@@ -1,16 +1,35 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Empreendimento, EmpreendimentoEtapa, Foto } from "@/types/database";
 
-export async function listarEmpreendimentosAtivos(): Promise<Empreendimento[]> {
+/**
+ * Empreendimentos que ESTE cliente pode ver: os ativos que estão ligados a
+ * ele na tabela cliente_empreendimentos. Cliente sem vínculo não vê nenhum.
+ */
+export async function listarEmpreendimentosDoCliente(clienteId: string): Promise<Empreendimento[]> {
   const supabase = createSupabaseAdminClient();
+
+  const { data: vinculos, error: erroVinculos } = await supabase
+    .from("cliente_empreendimentos")
+    .select("empreendimento_id")
+    .eq("cliente_id", clienteId);
+
+  if (erroVinculos) {
+    console.error("listarEmpreendimentosDoCliente vínculos", erroVinculos.message);
+    return [];
+  }
+
+  const ids = (vinculos ?? []).map((v) => v.empreendimento_id);
+  if (ids.length === 0) return [];
+
   const { data, error } = await supabase
     .from("empreendimentos")
     .select("*")
+    .in("id", ids)
     .eq("ativo", true)
     .order("ordem", { ascending: true });
 
   if (error) {
-    console.error("listarEmpreendimentosAtivos", error);
+    console.error("listarEmpreendimentosDoCliente", error.message);
     return [];
   }
   return data ?? [];
@@ -23,7 +42,8 @@ export interface EmpreendimentoDetalhe {
 }
 
 export async function buscarEmpreendimentoPorSlug(
-  slug: string
+  slug: string,
+  clienteId: string
 ): Promise<EmpreendimentoDetalhe | null> {
   const supabase = createSupabaseAdminClient();
 
@@ -35,6 +55,17 @@ export async function buscarEmpreendimentoPorSlug(
     .maybeSingle();
 
   if (error || !empreendimento) return null;
+
+  // Autorização: o cliente só abre obras ligadas a ele. Para quem não tem
+  // vínculo, a resposta é a mesma de "obra que não existe".
+  const { data: vinculo } = await supabase
+    .from("cliente_empreendimentos")
+    .select("empreendimento_id")
+    .eq("cliente_id", clienteId)
+    .eq("empreendimento_id", empreendimento.id)
+    .maybeSingle();
+
+  if (!vinculo) return null;
 
   const { data: etapas, error: etapasError } = await supabase
     .from("empreendimento_etapas")

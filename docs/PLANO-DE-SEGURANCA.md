@@ -140,7 +140,12 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] Remover `jose`, `SESSION_SECRET`, `cliente-session.ts`, a edge function `cpf-login` e o fallback.
 - [ ] Mover a validação de senha para o servidor. O Auth passa a aplicar a política.
 
-### Fase 3 — Portal protegido por RLS (6–10h)
+### Fase 3 — Portal: cada cliente vê só a própria obra 🟡 parte 1 entregue em 30/09/2026
+
+> **Entregue:** tabela `cliente_empreendimentos` (com RLS só para administrador), portal filtrando pelos vínculos do cliente logado (obra de outro cliente responde "não encontrada"), escolha das obras na edição do cliente no admin e coluna opcional `empreendimento` no CSV. Cliente sem vínculo não vê nenhuma obra.
+> **Pendente:** a RLS só passa a proteger o portal de fato quando o cliente entrar pelo Supabase Auth (login por código no e-mail, fase 2 parte 2). Até lá, a barreira é a checagem do servidor. Também pendente: fotos ainda em bucket público (links longos e não listáveis); trocar por links temporários assinados.
+
+### Fase 3 — plano original (6–10h)
 - [ ] Políticas de leitura para clientes autenticados:
   - empreendimentos ativos;
   - etapas com `percentual > 0`;
