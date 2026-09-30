@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Fase 6 (parte B) — Remove o CPF em texto puro
--- Rollback: supabase/rollback/20260930190000_fase6b_remove_cpf_em_claro.down.sql
 --
 -- APLICAR SÓ DEPOIS que o código novo (que usa o hash do CPF) estiver no ar:
 -- o código antigo lê a coluna `cpf`, que deixa de existir aqui.

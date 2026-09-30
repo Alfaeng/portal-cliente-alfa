@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Fase 6 (parte A) — LGPD: CPF protegido, auditoria e aceite da política
--- Rollback: supabase/rollback/20260930180000_fase6a_lgpd_cpf_auditoria.down.sql
 --
 -- Esta parte é ADITIVA: não remove nada e o código antigo continua
 -- funcionando. A remoção da coluna `cpf` (texto puro) acontece na parte B,

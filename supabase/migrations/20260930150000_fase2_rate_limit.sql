@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Fase 2 — Limite de tentativas (rate limit) para os logins
--- Rollback: supabase/rollback/20260930150000_fase2_rate_limit.down.sql
 --
 -- Cada "chave" (ex.: 'login_cpf:<hash>' ou 'login_admin_ip:<ip>') conta
 -- quantas tentativas aconteceram dentro de uma janela de tempo. A função

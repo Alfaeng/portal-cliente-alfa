@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Revoga a execução pública de public.rls_auto_enable()
--- Rollback: supabase/rollback/20260930170000_revoga_execucao_rls_auto_enable.down.sql
 --
 -- É a função do gatilho "ensure_rls" (liga a RLS sozinha em tabelas novas),
 -- criada pelo recurso do próprio Supabase. Um gatilho de evento não precisa

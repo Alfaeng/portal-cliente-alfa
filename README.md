@@ -33,21 +33,19 @@ cp .env.local.example .env.local
 - `SESSION_SECRET`: gere com `openssl rand -base64 48`.
 - `NEXT_PUBLIC_SITE_URL`: URL pública do site (usada nos links de convite).
 - `CRON_SECRET`: senha da limpeza diária (`/api/cron/manutencao`). A Vercel a envia sozinha.
+- `ADMIN_MFA_OBRIGATORIO` (opcional): `true` torna obrigatória a verificação em duas etapas do admin. Desligada por padrão.
 
 ## 3. Rodar o banco de dados
 
-O banco é versionado em `supabase/migrations/` (ordem cronológica). Cada
-migration tem um rollback correspondente em `supabase/rollback/`. Use a
-Supabase CLI (`supabase db push`) ou aplique os arquivos, em ordem, no SQL
-Editor. **Aplique sempre primeiro no projeto de teste (staging).**
+O banco é versionado em `supabase/migrations/`: aplique os arquivos **em ordem
+cronológica** (o nome começa com a data), com a Supabase CLI (`supabase db push`)
+ou no SQL Editor do Supabase. Teste sempre primeiro num projeto separado
+(staging) antes de aplicar em produção.
 
-1. `20260930120000_baseline_schema.sql` — tabelas, RLS, funções e triggers.
-2. `20260930120100_baseline_storage.sql` — buckets `logos` e `obras`.
-3. `20260930130000_fase1_endurecimento_banco.sql` — políticas por comando,
-   funções não expostas via API, limites de upload e índices.
-4. `supabase/seed.sql` (opcional, só em teste) — dados de exemplo.
-
-Plano completo de segurança, LGPD e operação: `docs/PLANO-DE-SEGURANCA.md`. O que fazer quando algo dá errado: `docs/RUNBOOK.md`. Dados pessoais e LGPD: `docs/LGPD-MAPEAMENTO.md`.
+O primeiro arquivo é o schema base (tabelas, RLS, funções e triggers), o
+segundo cria os buckets de fotos, e os seguintes são as evoluções (segurança,
+vínculo cliente ↔ obra, CPF protegido, auditoria etc.).
+`supabase/seed.sql` (opcional, só em teste) traz dados de exemplo.
 
 ## 4. Criar o primeiro administrador
 
@@ -134,6 +132,5 @@ src/
   types/           tipos das tabelas do banco
 supabase/
   migrations/      schema versionado (tabelas, RLS, storage)
-  rollback/        scripts que desfazem cada migration
   seed.sql         dados de exemplo (opcional)
 ```
