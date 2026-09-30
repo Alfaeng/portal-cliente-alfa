@@ -7,10 +7,10 @@ import { registrarResposta } from "@/lib/data/pesquisa";
 export async function responderPesquisa(campanhaId: string, nota: number) {
   const token = cookies().get(CLIENTE_SESSION_COOKIE)?.value;
   const sessao = await lerSessaoCliente(token);
-  if (!sessao) return { ok: false };
+  if (!sessao) return { ok: false, jaRespondeu: false };
 
-  if (nota < 1 || nota > 5) return { ok: false };
+  if (!Number.isInteger(nota) || nota < 1 || nota > 5) return { ok: false, jaRespondeu: false };
 
-  const ok = await registrarResposta(campanhaId, nota, sessao.clienteId);
-  return { ok };
+  const resultado = await registrarResposta(campanhaId, nota, sessao.clienteId);
+  return { ok: resultado === "ok", jaRespondeu: resultado === "ja_respondeu" };
 }

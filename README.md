@@ -106,7 +106,7 @@ npm run dev
   consulta) e aparecem sozinhas quando o admin lançar um percentual > 0.
 - **Fotos**: ao enviar fotos novas, as atuais recebem soft-delete
   (`deleted_at`) e continuam recuperáveis por ~30 dias. Agende a função
-  `public.purgar_fotos_excluidas()` (ver comentário em `schema.sql`) para
+  `public.purgar_fotos_excluidas()` (ver comentário em `supabase/migrations/20260930120000_baseline_schema.sql`) para
   limpar definitivamente os registros antigos; os arquivos no Storage
   correspondentes podem ser removidos por uma rotina agendada separada.
 - **Pesquisa de satisfação**: cada pergunta é uma campanha com status
@@ -134,7 +134,7 @@ npm run dev
 - **RLS**: as leituras/escritas do portal do cliente (CPF, empreendimentos,
   etapas, fotos, resposta de pesquisa) rodam no servidor Next.js com a
   service role key, que ignora RLS por desenho do Supabase. As políticas
-  de RLS em `schema.sql` protegem o acesso via Supabase Auth (área admin),
+  de RLS em `supabase/migrations` protegem o acesso via Supabase Auth (área admin),
   conforme o `nivel_acesso` de cada usuário.
 
 ## Estrutura

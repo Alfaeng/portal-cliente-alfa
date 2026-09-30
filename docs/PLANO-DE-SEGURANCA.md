@@ -110,13 +110,15 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] Sentry no Next.js (o conector já está disponível).
 - [ ] Proteção do branch `main`: exigir PR com CI verde.
 
-### Fase 1 — Correções imediatas no banco (6–8h) · *baixo risco, alto ganho*
+### Fase 1 — Correções imediatas no banco (6–8h) · *baixo risco, alto ganho* ✅ aplicada em 30/09/2026
+
+> Aplicada em produção pelas migrations `20260930130000_fase1_endurecimento_banco` e `20260930140000_fase1b_heic_e_voto_unico`. Decisões do cliente: HEIC liberado nos uploads e **uma resposta por cliente em cada pesquisa**. Pendências desta fase, que só se resolvem no painel: proteção contra senha vazada e as configurações do Auth. Ponto de atenção: navegadores comuns não exibem HEIC, então a conversão para JPEG no envio entra na fase 4.
 - [ ] `REVOKE EXECUTE ... FROM anon, authenticated` em `purgar_fotos_excluidas` e `marcar_convite_ativo`. Nas funções de RLS, liberar só `authenticated`.
 - [ ] `set search_path = ''` em `set_updated_at`, e nomes totalmente qualificados em todas as funções.
 - [ ] Reescrever as políticas: separar `select`, `insert`, `update` e `delete` (acaba com as duplicadas), usar `(select auth.uid())` por performance, e `to authenticated` explícito.
 - [ ] Índices em `campanhas_pesquisa.created_by`, `respostas_pesquisa.cliente_id` e `usuarios_admin.convidado_por`.
 - [ ] Criar os buckets com `allowed_mime_types` (jpeg, png, webp) e `file_size_limit` de 10 MB.
-- [ ] `unique (campanha_id, cliente_id)` em `respostas_pesquisa`.
+- [x] `unique (campanha_id, cliente_id)` em `respostas_pesquisa`.
 - [ ] Trocar a FK `respostas_pesquisa.cliente_id` para `on delete set null`. Assim a resposta fica anônima e o cliente pode ser excluído.
 - [ ] Painel do Auth:
   - ligar a proteção contra senha vazada;

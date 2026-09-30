@@ -13,13 +13,32 @@ export async function buscarCampanhaAtiva(): Promise<CampanhaPesquisa | null> {
   return data;
 }
 
-export async function registrarResposta(campanhaId: string, nota: number, clienteId: string) {
+export type ResultadoResposta = "ok" | "ja_respondeu" | "erro";
+
+export async function registrarResposta(
+  campanhaId: string,
+  nota: number,
+  clienteId: string
+): Promise<ResultadoResposta> {
   const supabase = createSupabaseAdminClient();
   const { error } = await supabase
     .from("respostas_pesquisa")
     .insert({ campanha_id: campanhaId, nota, cliente_id: clienteId });
 
-  return !error;
+  if (!error) return "ok";
+  // 23505 = violação de unicidade: o cliente já respondeu esta campanha.
+  if (error.code === "23505") return "ja_respondeu";
+  return "erro";
+}
+
+export async function clienteJaRespondeu(campanhaId: string, clienteId: string): Promise<boolean> {
+  const supabase = createSupabaseAdminClient();
+  const { count } = await supabase
+    .from("respostas_pesquisa")
+    .select("id", { count: "exact", head: true })
+    .eq("campanha_id", campanhaId)
+    .eq("cliente_id", clienteId);
+  return (count ?? 0) > 0;
 }
 
 export async function calcularEstatisticasCampanha(

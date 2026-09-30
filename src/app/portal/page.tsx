@@ -7,7 +7,7 @@ import { SurveyBanner } from "@/components/cliente/SurveyBanner";
 import { LogoutButton } from "@/components/cliente/LogoutButton";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
 import { listarEmpreendimentosAtivos } from "@/lib/data/empreendimentos";
-import { buscarCampanhaAtiva } from "@/lib/data/pesquisa";
+import { buscarCampanhaAtiva, clienteJaRespondeu } from "@/lib/data/pesquisa";
 
 export default async function PortalPage() {
   const token = cookies().get(CLIENTE_SESSION_COOKIE)?.value;
@@ -18,6 +18,9 @@ export default async function PortalPage() {
     listarEmpreendimentosAtivos(),
     buscarCampanhaAtiva(),
   ]);
+
+  const jaRespondeu =
+    campanha && sessao ? await clienteJaRespondeu(campanha.id, sessao.clienteId) : false;
 
   return (
     <>
@@ -52,7 +55,7 @@ export default async function PortalPage() {
       {campanha && (
         <section className="pt-0 pb-11 sm:pb-16">
           <div className="wrap">
-            <SurveyBanner campanhaId={campanha.id} pergunta={campanha.pergunta} />
+            <SurveyBanner campanhaId={campanha.id} pergunta={campanha.pergunta} jaRespondeu={jaRespondeu} />
           </div>
         </section>
       )}
