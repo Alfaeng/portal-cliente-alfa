@@ -39,7 +39,13 @@ export function Gallery({ fotos }: { fotos: Foto[] }) {
             aria-label="Ampliar foto da obra"
             className="tap-target relative aspect-[4/3] rounded overflow-hidden border border-line bg-gradient-to-br from-[#D7DBE1] to-[#F0F2F4] cursor-zoom-in"
           >
-            <Image src={foto.url} alt="Foto da obra" fill className="object-cover" unoptimized />
+            <Image
+              src={foto.url}
+              alt="Foto da obra"
+              fill
+              sizes="(max-width: 640px) 50vw, 33vw"
+              className="object-cover"
+            />
           </button>
         ))}
       </div>
@@ -96,8 +102,8 @@ export function Gallery({ fotos }: { fotos: Foto[] }) {
               src={fotos[aberta].url}
               alt="Foto da obra ampliada"
               fill
+              sizes="(max-width: 1100px) 100vw, 1100px"
               className="object-contain"
-              unoptimized
             />
           </div>
 

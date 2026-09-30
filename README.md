@@ -32,6 +32,7 @@ cp .env.local.example .env.local
 - `SUPABASE_SERVICE_ROLE_KEY`: idem — **nunca** exponha essa chave no client.
 - `SESSION_SECRET`: gere com `openssl rand -base64 48`.
 - `NEXT_PUBLIC_SITE_URL`: URL pública do site (usada nos links de convite).
+- `CRON_SECRET`: senha da limpeza diária (`/api/cron/manutencao`). A Vercel a envia sozinha.
 
 ## 3. Rodar o banco de dados
 
@@ -46,7 +47,7 @@ Editor. **Aplique sempre primeiro no projeto de teste (staging).**
    funções não expostas via API, limites de upload e índices.
 4. `supabase/seed.sql` (opcional, só em teste) — dados de exemplo.
 
-Plano completo de segurança, LGPD e operação: `docs/PLANO-DE-SEGURANCA.md`.
+Plano completo de segurança, LGPD e operação: `docs/PLANO-DE-SEGURANCA.md`. O que fazer quando algo dá errado: `docs/RUNBOOK.md`. Dados pessoais e LGPD: `docs/LGPD-MAPEAMENTO.md`.
 
 ## 4. Criar o primeiro administrador
 

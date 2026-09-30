@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/cliente-session";
 import { dentroDoLimite, hashParaChave, ipDaRequisicao } from "@/lib/security/rate-limit";
 import { cpfValido, onlyDigits } from "@/lib/utils";
+import { logErro } from "@/lib/logger";
 
 export interface LoginState {
   error?: string;
@@ -33,14 +34,14 @@ async function buscarClientePorCpf(cpf: string): Promise<{ id: string; nome: str
     const { data, error } = await supabase.rpc("buscar_cliente_por_cpf", { p_cpf: cpf });
 
     if (error) {
-      console.error("login cliente: erro ao consultar clientes", error.message);
+      logErro("login cliente: erro ao consultar clientes", error.message);
       return null;
     }
     const cliente = Array.isArray(data) ? data[0] : null;
     if (!cliente || !cliente.ativo) return null;
     return { id: cliente.id, nome: cliente.nome };
   } catch (err) {
-    console.error("login cliente: falha inesperada", err);
+    logErro("login cliente: falha inesperada", err);
     return null;
   }
 }

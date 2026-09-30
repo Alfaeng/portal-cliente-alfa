@@ -204,7 +204,12 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] **Retenção:** job `pg_cron` que anonimiza clientes inativos após o prazo definido e purga fotos e registros de auditoria antigos. Também excluir os arquivos do Storage, que hoje ficam órfãos.
 - [ ] Documentos: registro de operações de tratamento (RoPA), indicação do encarregado (DPO) e confirmação dos DPAs de Supabase e Vercel.
 
-### Fase 7 — Operação: backups, monitoramento e recuperação (10–14h)
+### Fase 7 — Operação: backups, monitoramento e recuperação (10–14h) 🟡 parte técnica entregue em 30/09/2026
+
+> **Entregue:** funções da Vercel em São Paulo (`gru1`, perto do banco; antes `iad1`/EUA); limpeza diária automática (fotos antigas: arquivo e registro; contadores de login) protegida por `CRON_SECRET`; endpoint `/api/saude` para monitor de disponibilidade; logs em JSON sem CPF/e-mail/token; miniaturas da galeria otimizadas e com cache de 30 dias; backup semanal criptografado (só roda quando o cliente configurar os segredos); Dependabot sem atualizações de versão grande; `docs/RUNBOOK.md` (deploy quebrado, banco fora do ar, vazamento de chave, guarda da chave do CPF, incidente, checklist de lançamento).
+> **Com o cliente:** plano Pro do Supabase (backups diários/PITR), monitoramento de erros (Sentry), monitor externo de disponibilidade, segredos do backup, teste de restauração.
+
+### Fase 7 — plano original (10–14h)
 - [ ] Backups: plano **Pro** do Supabase (backup diário com 7 dias). Decidir sobre o PITR.
 - [ ] Dump lógico semanal por GitHub Action, criptografado, em armazenamento externo (backup fora do Supabase).
 - [ ] Teste de restauração no staging, feito uma vez e documentado.

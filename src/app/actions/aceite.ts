@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
 import { VERSAO_POLITICA } from "@/lib/lgpd";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logErro } from "@/lib/logger";
 
 export interface AceiteState {
   error?: string;
@@ -26,7 +27,7 @@ export async function aceitarPolitica(
     );
 
   if (error) {
-    console.error("aceitarPolitica", error.message);
+    logErro("aceitarPolitica", error.message);
     return { error: "Não foi possível registrar agora. Tente novamente em instantes." };
   }
 

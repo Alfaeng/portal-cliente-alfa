@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logErro } from "@/lib/logger";
 
 /**
  * Versão atual da Política de Privacidade e dos Termos de Uso. Ao mudar o
@@ -20,12 +21,12 @@ export async function clienteAceitouPolitica(clienteId: string): Promise<boolean
       .eq("cliente_id", clienteId)
       .eq("versao", VERSAO_POLITICA);
     if (error) {
-      console.error("lgpd: erro ao consultar aceite", error.message);
+      logErro("lgpd: erro ao consultar aceite", error.message);
       return true;
     }
     return (count ?? 0) > 0;
   } catch (err) {
-    console.error("lgpd: falha inesperada ao consultar aceite", err);
+    logErro("lgpd: falha inesperada ao consultar aceite", err);
     return true;
   }
 }

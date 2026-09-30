@@ -13,6 +13,7 @@ import {
   detectarTipoImagem,
   processarFoto,
 } from "@/lib/media/processar-foto";
+import { logErro } from "@/lib/logger";
 
 // Etapas padrão de qualquer obra da Alfa — cadastradas automaticamente ao
 // criar um empreendimento, com percentual inicial 0 (ficam ocultas para o
@@ -151,7 +152,7 @@ export async function atualizarEmpreendimento(
       .eq("empreendimento_id", id)
       .select("id");
     if (erroEtapa || !linhas || linhas.length === 0) {
-      console.error("atualizarEmpreendimento: etapa não salva", etapa.id, erroEtapa?.message);
+      logErro("atualizarEmpreendimento: etapa não salva", etapa.id, erroEtapa?.message);
       falhas++;
     }
   }
@@ -237,7 +238,7 @@ export async function enviarFoto(formData: FormData): Promise<EnvioFotoResultado
   try {
     processada = await processarFoto(original, tipo);
   } catch (err) {
-    console.error("enviarFoto: falha ao processar a imagem", err);
+    logErro("enviarFoto: falha ao processar a imagem", err);
     return { ok: false, erro: "Não foi possível ler esta imagem. Ela pode estar corrompida." };
   }
 
@@ -246,7 +247,7 @@ export async function enviarFoto(formData: FormData): Promise<EnvioFotoResultado
     .from("obras")
     .upload(path, processada, { contentType: "image/jpeg", upsert: false });
   if (erroUpload) {
-    console.error("enviarFoto: falha no upload", erroUpload.message);
+    logErro("enviarFoto: falha no upload", erroUpload.message);
     return { ok: false, erro: "Não foi possível enviar esta foto. Tente de novo." };
   }
 
@@ -257,7 +258,7 @@ export async function enviarFoto(formData: FormData): Promise<EnvioFotoResultado
     .select("id")
     .single();
   if (erroInsert || !linha) {
-    console.error("enviarFoto: falha ao registrar", erroInsert?.message);
+    logErro("enviarFoto: falha ao registrar", erroInsert?.message);
     await supabase.storage.from("obras").remove([path]);
     return { ok: false, erro: "Não foi possível registrar esta foto. Tente de novo." };
   }

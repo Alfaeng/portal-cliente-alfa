@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logErro } from "@/lib/logger";
 
 /**
  * Registra no histórico de auditoria (public.audit_log) uma ação sensível
@@ -21,8 +22,8 @@ export async function registrarEvento(
       p_registro: registroId,
       p_detalhes: detalhes,
     });
-    if (error) console.error("auditoria: não foi possível registrar o evento", error.message);
+    if (error) logErro("auditoria: não foi possível registrar o evento", error.message);
   } catch (err) {
-    console.error("auditoria: falha inesperada", err);
+    logErro("auditoria: falha inesperada", err);
   }
 }
