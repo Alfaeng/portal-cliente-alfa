@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { idSchema } from "@/lib/validation";
+import { logErro } from "@/lib/logger";
 
 /**
  * Direito de acesso do titular (LGPD, art. 18): baixa, em um único arquivo,
@@ -21,7 +22,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
   });
 
   if (error) {
-    console.error("dados_do_cliente", error.message);
+    logErro("dados_do_cliente", error.message);
     return NextResponse.json({ error: "Não foi possível gerar o arquivo." }, { status: 500 });
   }
   if (!data) return NextResponse.json({ error: "Cliente não encontrado." }, { status: 404 });

@@ -8,6 +8,7 @@ import { exigirAdmin } from "@/lib/auth/admin-guard";
 import { z } from "zod";
 import { cpfValido, onlyDigits, slugify } from "@/lib/utils";
 import { campo, emailSchema, idSchema, telefoneSchema } from "@/lib/validation";
+import { logErro } from "@/lib/logger";
 
 const LIMITE_CSV_BYTES = 2 * 1024 * 1024;
 const LIMITE_CSV_LINHAS = 10000;
@@ -114,7 +115,7 @@ export async function importarClientesCsv(
   });
 
   if (error) {
-    console.error("importarClientesCsv", error.message);
+    logErro("importarClientesCsv", error.message);
     return { error: "Erro ao importar. Verifique o formato do arquivo e tente novamente." };
   }
 

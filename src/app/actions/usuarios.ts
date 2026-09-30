@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
 import { emailSchema, idSchema, campo } from "@/lib/validation";
 import type { NivelAcesso } from "@/types/database";
+import { logErro } from "@/lib/logger";
 
 export interface UsuarioFormState {
   error?: string;
@@ -51,7 +52,7 @@ export async function convidarUsuario(
 
   if (insertError) {
     // Desfaz o convite para não deixar um cadastro "fantasma" no Auth.
-    console.error("convidarUsuario: falha ao registrar em usuarios_admin", insertError.message);
+    logErro("convidarUsuario: falha ao registrar em usuarios_admin", insertError.message);
     await admin.auth.admin.deleteUser(data.user.id);
     return { error: "Não foi possível registrar o acesso. O convite foi cancelado, tente de novo." };
   }

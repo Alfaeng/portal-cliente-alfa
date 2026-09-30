@@ -47,6 +47,8 @@ const nextConfig = {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
   images: {
+    // Os nomes dos arquivos de foto são únicos (nunca mudam), então podem ficar 30 dias em cache.
+    minimumCacheTTL: 60 * 60 * 24 * 30,
     remotePatterns: [
       { protocol: 'https', hostname: 'alfaengenhariama.com.br' },
       { protocol: 'https', hostname: '*.supabase.co' },

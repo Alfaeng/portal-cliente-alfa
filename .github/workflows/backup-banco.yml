@@ -1,0 +1,65 @@
+name: Backup do banco (emergência)
+
+# Cópia semanal, CRIPTOGRAFADA, do schema "public" do banco (clientes, obras,
+# pesquisas, auditoria...). É uma rede de segurança para quando o projeto não
+# tem os backups automáticos do plano pago do Supabase.
+#
+# Só roda se os dois segredos abaixo existirem (Settings > Secrets and variables
+# > Actions). Sem eles, a rotina apenas avisa e termina sem erro.
+#   SUPABASE_DB_URL     endereço de conexão do banco (use o "Session pooler")
+#   BACKUP_PASSPHRASE   frase longa usada para criptografar o arquivo
+#
+# ATENÇÃO: o arquivo NÃO inclui as fotos (armazenamento) nem a chave secreta
+# do CPF (Vault). Veja docs/RUNBOOK.md.
+on:
+  schedule:
+    - cron: "0 7 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    name: Copiar e criptografar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Conferir se o backup está configurado
+        id: config
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "Backup não configurado (faltam os segredos). Nada a fazer."
+            echo "ativo=nao" >> "$GITHUB_OUTPUT"
+          else
+            echo "ativo=sim" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Instalar o cliente do Postgres 17
+        if: steps.config.outputs.ativo == 'sim'
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-17
+
+      - name: Gerar e criptografar a cópia
+        if: steps.config.outputs.ativo == 'sim'
+        run: |
+          pg_dump "$SUPABASE_DB_URL" --schema=public --no-owner --no-privileges --format=custom --file=backup.dump
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt -in backup.dump -out "backup-$(date +%F).dump.enc" -pass env:BACKUP_PASSPHRASE
+          rm -f backup.dump
+          ls -lh backup-*.dump.enc
+
+      - name: Guardar por 30 dias
+        if: steps.config.outputs.ativo == 'sim'
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-banco
+          path: backup-*.dump.enc
+          retention-days: 30
+          if-no-files-found: error

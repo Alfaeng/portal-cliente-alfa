@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Empreendimento, EmpreendimentoEtapa, Foto } from "@/types/database";
+import { logErro } from "@/lib/logger";
 
 /**
  * Empreendimentos que ESTE cliente pode ver: os ativos que estão ligados a
@@ -14,7 +15,7 @@ export async function listarEmpreendimentosDoCliente(clienteId: string): Promise
     .eq("cliente_id", clienteId);
 
   if (erroVinculos) {
-    console.error("listarEmpreendimentosDoCliente vínculos", erroVinculos.message);
+    logErro("listarEmpreendimentosDoCliente vínculos", erroVinculos.message);
     return [];
   }
 
@@ -29,7 +30,7 @@ export async function listarEmpreendimentosDoCliente(clienteId: string): Promise
     .order("ordem", { ascending: true });
 
   if (error) {
-    console.error("listarEmpreendimentosDoCliente", error.message);
+    logErro("listarEmpreendimentosDoCliente", error.message);
     return [];
   }
   return data ?? [];
@@ -83,8 +84,8 @@ export async function buscarEmpreendimentoPorSlug(
     .select("*")
     .eq("empreendimento_id", empreendimento.id);
 
-  if (etapasError) console.error("buscarEmpreendimentoPorSlug etapas:", etapasError);
-  if (fotosError) console.error("buscarEmpreendimentoPorSlug fotos:", fotosError);
+  if (etapasError) logErro("buscarEmpreendimentoPorSlug etapas:", etapasError);
+  if (fotosError) logErro("buscarEmpreendimentoPorSlug fotos:", fotosError);
 
   const fotos = (fotosTodas ?? [])
     .filter((f) => !f.deleted_at)

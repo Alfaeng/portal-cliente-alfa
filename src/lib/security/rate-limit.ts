@@ -1,6 +1,7 @@
 import { createHash } from "crypto";
 import { headers } from "next/headers";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { logErro } from "@/lib/logger";
 
 /**
  * Limite de tentativas (rate limit) apoiado na função
@@ -23,12 +24,12 @@ export async function dentroDoLimite(
       p_janela_segundos: janelaSegundos,
     });
     if (error) {
-      console.error("rate-limit: erro ao consultar o banco", error.message);
+      logErro("rate-limit: erro ao consultar o banco", error.message);
       return true;
     }
     return data === true;
   } catch (err) {
-    console.error("rate-limit: falha inesperada", err);
+    logErro("rate-limit: falha inesperada", err);
     return true;
   }
 }

@@ -113,7 +113,7 @@ export function ObraEditor({ detalhe }: { detalhe: EmpreendimentoAdminDetalhe })
             <div className="grid grid-cols-3 gap-2.5 mt-3.5">
               {fotos.map((foto: Foto) => (
                 <div key={foto.id} className="relative aspect-square rounded overflow-hidden border border-line bg-[#EEF0F3]">
-                  <Image src={foto.url} alt="" fill className="object-cover" unoptimized />
+                  <Image src={foto.url} alt="" fill sizes="100px" className="object-cover" />
                   <DeleteFotoButton fotoId={foto.id} />
                 </div>
               ))}

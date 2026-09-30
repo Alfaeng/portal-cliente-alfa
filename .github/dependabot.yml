@@ -10,6 +10,11 @@ updates:
       time: "08:00"
       timezone: America/Fortaleza
     open-pull-requests-limit: 5
+    # Mudanças de versão "grande" (ex.: Next 15 -> 16, Tailwind 3 -> 4) podem quebrar
+    # o site e são tratadas à mão, com teste, em vez de chegarem como PR automático.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       atualizacoes-menores:
         update-types: [minor, patch]
