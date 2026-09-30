@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { atualizarCliente, atualizarVinculosCliente, excluirCliente } from "@/app/actions/clientes";
 import type { Cliente } from "@/types/database";
 
@@ -22,8 +23,10 @@ export function ClienteRow({
   obras: ObraOpcao[];
   obrasVinculadas: string[];
 }) {
+  const router = useRouter();
   const [selecionadas, setSelecionadas] = useState<string[]>(obrasVinculadas);
-  const nomesVinculados = obras.filter((o) => obrasVinculadas.includes(o.id)).map((o) => o.nome);
+  // Mostra o que foi salvo na hora, sem esperar a página recarregar.
+  const nomesVinculados = obras.filter((o) => selecionadas.includes(o.id)).map((o) => o.nome);
 
   const [editando, setEditando] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -101,6 +104,7 @@ export function ClienteRow({
               startTransition(async () => {
                 await atualizarCliente(cliente.id, nome, email, telefone);
                 await atualizarVinculosCliente(cliente.id, selecionadas);
+                router.refresh();
               });
               setEditando(false);
             }}

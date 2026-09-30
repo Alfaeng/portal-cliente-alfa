@@ -266,3 +266,17 @@ Custos recorrentes fora das horas:
 4. **Prazo de retenção** dos dados de clientes inativos (sugestão: 5 anos após o fim da obra, a validar com o jurídico).
 5. **Encarregado (DPO)** e **jurídico** que vão revisar a política e os termos.
 6. **RPO e RTO** aceitáveis (sugestão: até 24h de perda de dados e 4h para voltar ao ar).
+
+---
+
+## Rodada de testes nº 1 (30/09/2026, produção)
+
+Executada pelo Claude no Chrome com o roteiro `docs/PROMPT-TESTES-CHROME.md`. Resultado: 64 testes, 31 aprovados, 1 falha, 10 parciais, 10 bloqueados (dependem do humano) e 12 não testados.
+
+**Aprovado:** áreas protegidas redirecionam; cabeçalhos de segurança presentes; cada cliente só vê a própria obra (obra de outro cliente responde 404, nos dois sentidos); vínculo removido reflete na hora; pesquisa respondida uma única vez; validações de percentual, etapa e texto; texto malicioso (`<script>`) exibido como texto puro; exportação Excel; erros do servidor sem detalhes internos.
+
+**Corrigido depois da rodada:** exportação em PDF quebrada (erro 500 por causa do caractere ★, que a fonte do PDF não suporta); função `rls_auto_enable()` executável por visitantes; página 404 em inglês; coluna "Empreendimentos" que só atualizava após recarregar.
+
+**Pendente com o humano:** testes de digitar CPF/senha (A10, A11, D01, D15, H01, H02), envio de arquivos (bloco G), limpeza dos dados de teste (L01, L02, D16, D18) e conferência das configurações do Auth, backups e plano nos painéis.
+
+**Pendente de decisão/infra:** proteção de deploy da Vercel (SSO em `all_except_custom_domains`) pode exigir login da Vercel de quem acessar o endereço `.vercel.app`; resolver com domínio próprio ou trocando a proteção antes do lançamento.
