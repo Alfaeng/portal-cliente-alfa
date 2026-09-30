@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateAdminSession } from "@/lib/supabase/middleware";
+import { mfaAdminObrigatorio } from "@/lib/auth/mfa-config";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
 
 export async function middleware(request: NextRequest) {
@@ -22,6 +23,15 @@ export async function middleware(request: NextRequest) {
     // Verificação em duas etapas obrigatória: sem o código do app
     // autenticador (aal2), só a tela de verificação/cadastro é acessível.
     const verificado = aal?.currentLevel === "aal2";
+    if (!mfaAdminObrigatorio()) {
+      // Verificação desligada: a tela /admin/mfa não é necessária.
+      if (pathname === "/admin/mfa") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/obras";
+        return NextResponse.redirect(url);
+      }
+      return response;
+    }
     if (pathname === "/admin/mfa") {
       if (verificado) {
         const url = request.nextUrl.clone();
