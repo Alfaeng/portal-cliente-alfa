@@ -9,6 +9,7 @@ const TODAS_ABAS = [
   { href: "/admin/pesquisa", label: "Pesquisa", niveis: ["editor_completo", "administrador"] },
   { href: "/admin/clientes", label: "Clientes", niveis: ["administrador"] },
   { href: "/admin/usuarios", label: "Usuários", niveis: ["administrador"] },
+  { href: "/admin/auditoria", label: "Auditoria", niveis: ["administrador"] },
 ] as const;
 
 export function AdminTabs({ nivelAcesso }: { nivelAcesso: NivelAcesso }) {

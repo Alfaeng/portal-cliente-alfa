@@ -26,7 +26,7 @@ export function ClientesImport() {
     <div className="bg-surface border border-line rounded p-6 sm:p-8 mb-6">
       <h2 className="text-lg mb-2">Importar base do Sienge</h2>
       <p className="text-[12.5px] text-muted mb-5">
-        Envie o CSV exportado do Sienge com as colunas <code>cpf, nome, email, telefone</code> e,
+        Envie o CSV exportado do Sienge com as colunas <code>cpf, nome, email, telefone</code> (o CPF não fica gravado: só um código protegido) e,
         opcionalmente, <code>empreendimento</code> (nome do empreendimento; para mais de um, separe
         com <code>;</code>). Clientes com o mesmo CPF são atualizados; novos CPFs são cadastrados.
         O vínculo só é adicionado, nunca removido.

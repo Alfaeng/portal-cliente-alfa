@@ -187,7 +187,12 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] Atualizar `@supabase/ssr` e `@supabase/supabase-js`.
 - [ ] `npm audit` zerado em high/critical, com o CI barrando regressões.
 
-### Fase 6 — LGPD (14–22h)
+### Fase 6 — LGPD (14–22h) 🟡 parte técnica entregue em 30/09/2026
+
+> **Entregue:** CPF guardado só como hash com chave no Vault + máscara (parte A no ar; parte B remove a coluna em texto puro); login, importação e cadastro sem gravar o CPF; auditoria só de inserção com tela em Admin → Auditoria; exportações registradas; aceite da política no primeiro acesso do cliente; páginas `/privacidade` e `/termos` (rascunho); botão "Baixar dados" (direito de acesso); excluir cliente mantém as respostas sem identificação; mapeamento em `docs/LGPD-MAPEAMENTO.md`.
+> **Depende de você/jurídico:** revisão dos textos, base legal, prazo de retenção, encarregado (DPO), DPAs de Supabase e Vercel. **Pendente técnico:** rotina automática de retenção (fase 7).
+
+### Fase 6 — plano original (14–22h)
 - [ ] Minimização do CPF (D3): migration de `cpf` para `cpf_hash` + `cpf_mascarado`, com o login e a importação adaptados.
 - [ ] Tirar o CPF da exportação da pesquisa. Manter o nome se houver finalidade, ou anonimizar.
 - [ ] **Log de auditoria** (`audit_log`, só inserção, nem admins apagam):

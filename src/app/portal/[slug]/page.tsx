@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
@@ -9,6 +10,7 @@ import { StageBar } from "@/components/cliente/StageBar";
 import { Gallery } from "@/components/cliente/Gallery";
 import { buscarEmpreendimentoPorSlug } from "@/lib/data/empreendimentos";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
+import { clienteAceitouPolitica } from "@/lib/lgpd";
 import { formatDateLong } from "@/lib/utils";
 
 // Sem isso, o Next tende a cachear esta página estaticamente na primeira
@@ -21,6 +23,8 @@ export const dynamic = "force-dynamic";
 export default async function EmpreendimentoPage({ params }: { params: Promise<{ slug: string }> }) {
   const sessao = await lerSessaoCliente((await cookies()).get(CLIENTE_SESSION_COOKIE)?.value);
   if (!sessao) notFound();
+
+  if (!(await clienteAceitouPolitica(sessao.clienteId))) redirect("/portal/aceite");
 
   const detalhe = await buscarEmpreendimentoPorSlug((await params).slug, sessao.clienteId);
   if (!detalhe) notFound();

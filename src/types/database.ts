@@ -4,7 +4,8 @@ export type ConviteStatus = "pendente" | "ativo";
 
 export interface Cliente {
   id: string;
-  cpf: string;
+  /** CPF só aparece mascarado (***.123.456-**). O número completo não é guardado. */
+  cpf_mascarado: string | null;
   nome: string;
   email: string | null;
   telefone: string | null;
@@ -70,7 +71,7 @@ export interface RespostaPesquisa {
 }
 
 export interface RespostaPesquisaComCliente extends RespostaPesquisa {
-  cliente: { nome: string; cpf: string } | null;
+  cliente: { nome: string; cpf_mascarado: string | null } | null;
 }
 
 export interface UsuarioAdmin {

@@ -58,7 +58,11 @@ export function SiteFooter() {
               </a>
             ))}
           </span>
-          <span>Todos os direitos reservados</span>
+          <span className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+            <a href="/privacidade" className="hover:text-gold transition-colors">Política de Privacidade</a>
+            <a href="/termos" className="hover:text-gold transition-colors">Termos de Uso</a>
+            <span>Todos os direitos reservados</span>
+          </span>
           <Image src={ALFA_LOGO_URL} alt="Alfa Engenharia" width={64} height={18} className="h-4 w-auto" unoptimized />
         </div>
       </div>
