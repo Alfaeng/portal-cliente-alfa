@@ -2,6 +2,7 @@ import Image from "next/image";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 import { logoutAdmin } from "@/app/actions/admin-auth";
+import { mfaAdminObrigatorio } from "@/lib/auth/mfa-config";
 import { ALFA_LOGO_URL } from "@/lib/site-content";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -20,9 +21,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   // Sem o segundo fator (código do app), mostra só a tela de verificação,
   // sem o menu do admin.
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") {
-    return <>{children}</>;
+  if (mfaAdminObrigatorio()) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel !== "aal2") {
+      return <>{children}</>;
+    }
   }
 
   const { data: usuario } = await supabase

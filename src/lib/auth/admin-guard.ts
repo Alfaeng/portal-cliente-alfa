@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { mfaAdminObrigatorio } from "@/lib/auth/mfa-config";
 import type { NivelAcesso, UsuarioAdmin } from "@/types/database";
 
 /**
@@ -19,8 +20,10 @@ export async function exigirAdmin(niveisPermitidos?: NivelAcesso[]): Promise<Usu
 
   // Defesa em profundidade: rotas fora do middleware (ex.: /api/export) e
   // Server Actions também exigem a verificação em duas etapas.
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") redirect("/admin/mfa");
+  if (mfaAdminObrigatorio()) {
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.currentLevel !== "aal2") redirect("/admin/mfa");
+  }
 
   const { data: usuarioAdmin } = await supabase
     .from("usuarios_admin")
