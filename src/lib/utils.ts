@@ -50,3 +50,14 @@ export function formatPeriodo(inicio: string, fim: string | null) {
   };
   return fim ? `${format(inicio)} – ${format(fim)}` : `${format(inicio)} – atual`;
 }
+
+/** Transforma um nome em "slug": sem acento, minúsculo, com hífens. */
+export function slugify(nome: string) {
+  return nome
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}

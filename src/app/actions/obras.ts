@@ -4,16 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
-
-function slugify(nome: string) {
-  return nome
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+import { slugify } from "@/lib/utils";
 
 // Etapas padrão de qualquer obra da Alfa — cadastradas automaticamente ao
 // criar um empreendimento, com percentual inicial 0 (ficam ocultas para o

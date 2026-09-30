@@ -1,14 +1,30 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { atualizarCliente, excluirCliente } from "@/app/actions/clientes";
+import { atualizarCliente, atualizarVinculosCliente, excluirCliente } from "@/app/actions/clientes";
 import type { Cliente } from "@/types/database";
 
 function formatCpf(cpf: string) {
   return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
-export function ClienteRow({ cliente }: { cliente: Cliente }) {
+export interface ObraOpcao {
+  id: string;
+  nome: string;
+}
+
+export function ClienteRow({
+  cliente,
+  obras,
+  obrasVinculadas,
+}: {
+  cliente: Cliente;
+  obras: ObraOpcao[];
+  obrasVinculadas: string[];
+}) {
+  const [selecionadas, setSelecionadas] = useState<string[]>(obrasVinculadas);
+  const nomesVinculados = obras.filter((o) => obrasVinculadas.includes(o.id)).map((o) => o.nome);
+
   const [editando, setEditando] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [nome, setNome] = useState(cliente.nome);
@@ -60,12 +76,32 @@ export function ClienteRow({ cliente }: { cliente: Cliente }) {
             className="w-full border border-line rounded px-2 py-1.5 text-[13.5px]"
           />
         </td>
+        <td className="py-2.5 pr-3 border-b border-line text-[13px]">
+          {obras.length === 0 && <span className="text-muted">Nenhum empreendimento cadastrado</span>}
+          {obras.map((obra) => (
+            <label key={obra.id} className="flex items-center gap-2 py-0.5">
+              <input
+                type="checkbox"
+                checked={selecionadas.includes(obra.id)}
+                onChange={(e) =>
+                  setSelecionadas((atual) =>
+                    e.target.checked ? [...atual, obra.id] : atual.filter((id) => id !== obra.id)
+                  )
+                }
+              />
+              {obra.nome}
+            </label>
+          ))}
+        </td>
         <td className="py-2.5 border-b border-line text-[13.5px] whitespace-nowrap">
           <button
             type="button"
             disabled={isPending}
             onClick={() => {
-              startTransition(() => atualizarCliente(cliente.id, nome, email, telefone));
+              startTransition(async () => {
+                await atualizarCliente(cliente.id, nome, email, telefone);
+                await atualizarVinculosCliente(cliente.id, selecionadas);
+              });
               setEditando(false);
             }}
             className="text-navy hover:text-gold active:text-gold transition-colors disabled:opacity-50 mr-3"
@@ -78,6 +114,7 @@ export function ClienteRow({ cliente }: { cliente: Cliente }) {
               setNome(cliente.nome);
               setEmail(cliente.email ?? "");
               setTelefone(cliente.telefone ?? "");
+              setSelecionadas(obrasVinculadas);
               setEditando(false);
             }}
             className="text-muted hover:text-navy transition-colors"
@@ -103,6 +140,13 @@ export function ClienteRow({ cliente }: { cliente: Cliente }) {
         </td>
         <td className="py-3 pr-3 border-b border-line text-muted text-[13.5px]">
           {cliente.telefone ?? "—"}
+        </td>
+        <td className="py-3 pr-3 border-b border-line text-[13px]">
+          {nomesVinculados.length > 0 ? (
+            <span className="text-muted">{nomesVinculados.join(", ")}</span>
+          ) : (
+            <span className="text-[#8A5252]">Nenhum</span>
+          )}
         </td>
         <td className="py-3 border-b border-line text-[13.5px] whitespace-nowrap">
           <span
@@ -132,7 +176,7 @@ export function ClienteRow({ cliente }: { cliente: Cliente }) {
       </tr>
       {erroExclusao && (
         <tr>
-          <td colSpan={5} className="pb-3 pt-1 border-b border-line text-[12px] text-[#8A5252]">
+          <td colSpan={6} className="pb-3 pt-1 border-b border-line text-[12px] text-[#8A5252]">
             {erroExclusao}
           </td>
         </tr>

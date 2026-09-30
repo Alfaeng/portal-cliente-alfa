@@ -6,7 +6,7 @@ import { EmpreendimentoCard } from "@/components/cliente/EmpreendimentoCard";
 import { SurveyBanner } from "@/components/cliente/SurveyBanner";
 import { LogoutButton } from "@/components/cliente/LogoutButton";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
-import { listarEmpreendimentosAtivos } from "@/lib/data/empreendimentos";
+import { listarEmpreendimentosDoCliente } from "@/lib/data/empreendimentos";
 import { buscarCampanhaAtiva, clienteJaRespondeu } from "@/lib/data/pesquisa";
 
 export default async function PortalPage() {
@@ -15,7 +15,7 @@ export default async function PortalPage() {
   const primeiroNome = sessao?.nome?.split(" ")[0] ?? "";
 
   const [empreendimentos, campanha] = await Promise.all([
-    listarEmpreendimentosAtivos(),
+    sessao ? listarEmpreendimentosDoCliente(sessao.clienteId) : Promise.resolve([]),
     buscarCampanhaAtiva(),
   ]);
 
@@ -40,7 +40,7 @@ export default async function PortalPage() {
 
           {empreendimentos.length === 0 ? (
             <p className="text-muted text-sm">
-              Nenhum empreendimento ativo no momento. Fale com a Alfa para mais informações.
+              Ainda não há nenhum empreendimento vinculado ao seu cadastro. Fale com a Alfa para mais informações.
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-[18px]">

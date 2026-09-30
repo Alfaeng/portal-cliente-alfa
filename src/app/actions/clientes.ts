@@ -4,13 +4,16 @@ import Papa from "papaparse";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
-import { cpfValido, onlyDigits } from "@/lib/utils";
+import { z } from "zod";
+import { cpfValido, onlyDigits, slugify } from "@/lib/utils";
 
 export interface ImportState {
   error?: string;
   success?: boolean;
   importados?: number;
   ignorados?: number;
+  vinculados?: number;
+  obrasNaoEncontradas?: string[];
 }
 
 const initialState: ImportState = {};
@@ -34,7 +37,17 @@ export async function importarClientesCsv(
     transformHeader: (h) => h.trim().toLowerCase(),
   });
 
-  const linhasValidas = [];
+  // Mapa para achar o empreendimento pelo slug ou pelo nome (sem acento).
+  const { data: obras } = await supabase.from("empreendimentos").select("id, slug, nome");
+  const obraPorChave = new Map<string, string>();
+  for (const obra of obras ?? []) {
+    obraPorChave.set(obra.slug, obra.id);
+    obraPorChave.set(slugify(obra.nome), obra.id);
+  }
+
+  const linhasValidas: { cpf: string; nome: string; email: string | null; telefone: string | null; ativo: boolean }[] = [];
+  const obrasDoCpf = new Map<string, Set<string>>();
+  const naoEncontradas = new Set<string>();
   let ignorados = 0;
 
   for (const linha of data) {
@@ -51,20 +64,57 @@ export async function importarClientesCsv(
       telefone: (linha.telefone ?? "").trim() || null,
       ativo: true,
     });
+
+    // Coluna opcional "empreendimento": um ou mais, separados por ; ou |
+    for (const nomeObra of (linha.empreendimento ?? "").split(/[;|]/)) {
+      const chave = slugify(nomeObra);
+      if (!chave) continue;
+      const obraId = obraPorChave.get(chave);
+      if (!obraId) {
+        naoEncontradas.add(nomeObra.trim());
+        continue;
+      }
+      if (!obrasDoCpf.has(cpf)) obrasDoCpf.set(cpf, new Set());
+      obrasDoCpf.get(cpf)!.add(obraId);
+    }
   }
 
   if (linhasValidas.length === 0) {
     return { error: "Nenhuma linha válida encontrada. Confira as colunas: cpf, nome, email, telefone." };
   }
 
-  const { error } = await supabase.from("clientes").upsert(linhasValidas, { onConflict: "cpf" });
+  const { data: salvos, error } = await supabase
+    .from("clientes")
+    .upsert(linhasValidas, { onConflict: "cpf" })
+    .select("id, cpf");
 
   if (error) {
     return { error: "Erro ao importar. Verifique o formato do arquivo e tente novamente." };
   }
 
+  // Só ADICIONA vínculos (nunca remove): tirar o acesso de alguém é uma
+  // decisão manual, feita na edição do cliente.
+  const novosVinculos = (salvos ?? []).flatMap((c) =>
+    [...(obrasDoCpf.get(c.cpf) ?? [])].map((empreendimento_id) => ({ cliente_id: c.id, empreendimento_id }))
+  );
+  if (novosVinculos.length > 0) {
+    const { error: erroVinculos } = await supabase
+      .from("cliente_empreendimentos")
+      .upsert(novosVinculos, { onConflict: "cliente_id,empreendimento_id", ignoreDuplicates: true });
+    if (erroVinculos) {
+      return { error: "Clientes importados, mas não foi possível vincular os empreendimentos. Vincule pela edição do cliente." };
+    }
+  }
+
   revalidatePath("/admin/clientes");
-  return { success: true, importados: linhasValidas.length, ignorados };
+  revalidatePath("/portal");
+  return {
+    success: true,
+    importados: linhasValidas.length,
+    ignorados,
+    vinculados: novosVinculos.length,
+    obrasNaoEncontradas: [...naoEncontradas],
+  };
 }
 
 export interface CriarClienteState {
@@ -155,5 +205,49 @@ export async function excluirCliente(id: string): Promise<ExcluirClienteState> {
   }
 
   revalidatePath("/admin/clientes");
+  return {};
+}
+
+const vinculosSchema = z.object({
+  clienteId: z.string().uuid(),
+  empreendimentoIds: z.array(z.string().uuid()).max(100),
+});
+
+export interface VinculosState {
+  error?: string;
+}
+
+// Define exatamente quais empreendimentos o cliente pode ver. Remove os que
+// foram desmarcados e adiciona os novos.
+export async function atualizarVinculosCliente(
+  clienteId: string,
+  empreendimentoIds: string[]
+): Promise<VinculosState> {
+  await exigirAdmin(["administrador"]);
+
+  const entrada = vinculosSchema.safeParse({ clienteId, empreendimentoIds });
+  if (!entrada.success) return { error: "Dados inválidos." };
+
+  const supabase = createSupabaseServerClient();
+  const ids = [...new Set(entrada.data.empreendimentoIds)];
+
+  const remocao = supabase.from("cliente_empreendimentos").delete().eq("cliente_id", clienteId);
+  const { error: erroRemocao } = ids.length
+    ? await remocao.not("empreendimento_id", "in", `(${ids.join(",")})`)
+    : await remocao;
+  if (erroRemocao) return { error: "Não foi possível salvar os empreendimentos do cliente." };
+
+  if (ids.length > 0) {
+    const { error } = await supabase
+      .from("cliente_empreendimentos")
+      .upsert(
+        ids.map((empreendimento_id) => ({ cliente_id: clienteId, empreendimento_id })),
+        { onConflict: "cliente_id,empreendimento_id", ignoreDuplicates: true }
+      );
+    if (error) return { error: "Não foi possível salvar os empreendimentos do cliente." };
+  }
+
+  revalidatePath("/admin/clientes");
+  revalidatePath("/portal");
   return {};
 }
