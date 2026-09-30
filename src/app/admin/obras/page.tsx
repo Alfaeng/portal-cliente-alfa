@@ -6,11 +6,11 @@ import { exigirAdmin } from "@/lib/auth/admin-guard";
 export default async function AdminObrasPage({
   searchParams,
 }: {
-  searchParams: { edit?: string };
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const usuario = await exigirAdmin(["editor_obras", "editor_completo", "administrador"]);
   const empreendimentos = await listarEmpreendimentosAdmin();
-  const editId = searchParams.edit ?? empreendimentos[0]?.id;
+  const editId = (await searchParams).edit ?? empreendimentos[0]?.id;
   const detalhe = editId ? await buscarEmpreendimentoAdmin(editId) : null;
 
   return (

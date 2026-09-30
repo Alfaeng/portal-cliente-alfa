@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { criarEmpreendimento, type ObraFormState } from "@/app/actions/obras";
 
 const initialState: ObraFormState = {};
@@ -19,7 +20,7 @@ function CadastrarButton() {
 }
 
 export function NovaObraForm() {
-  const [state, formAction] = useFormState(criarEmpreendimento, initialState);
+  const [state, formAction] = useActionState(criarEmpreendimento, initialState);
 
   return (
     <form action={formAction} className="bg-surface border border-line rounded p-6 sm:p-8 max-w-xl">

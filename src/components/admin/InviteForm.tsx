@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { convidarUsuario, type UsuarioFormState } from "@/app/actions/usuarios";
 
 const initialState: UsuarioFormState = {};
@@ -19,7 +20,7 @@ function EnviarConviteButton() {
 }
 
 export function InviteForm() {
-  const [state, formAction] = useFormState(convidarUsuario, initialState);
+  const [state, formAction] = useActionState(convidarUsuario, initialState);
 
   return (
     <div className="bg-surface border border-line rounded p-6 sm:p-8">

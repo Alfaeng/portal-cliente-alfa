@@ -24,7 +24,7 @@ export async function loginAdmin(
   }
 
   const [okIp, okEmail] = await Promise.all([
-    dentroDoLimite(`login_admin_ip:${ipDaRequisicao()}`, LIMITE_POR_IP, JANELA_LOGIN_SEGUNDOS),
+    dentroDoLimite(`login_admin_ip:${(await ipDaRequisicao())}`, LIMITE_POR_IP, JANELA_LOGIN_SEGUNDOS),
     dentroDoLimite(`login_admin_email:${hashParaChave(email)}`, LIMITE_POR_EMAIL, JANELA_LOGIN_SEGUNDOS),
   ]);
   if (!okIp || !okEmail) {

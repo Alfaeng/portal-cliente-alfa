@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { criarClienteManual, type CriarClienteState } from "@/app/actions/clientes";
 
 const initialState: CriarClienteState = {};
@@ -20,7 +21,7 @@ function AdicionarButton() {
 }
 
 export function ClienteAdicionar() {
-  const [state, formAction] = useFormState(criarClienteManual, initialState);
+  const [state, formAction] = useActionState(criarClienteManual, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

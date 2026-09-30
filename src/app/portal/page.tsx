@@ -10,7 +10,7 @@ import { listarEmpreendimentosDoCliente } from "@/lib/data/empreendimentos";
 import { buscarCampanhaAtiva, clienteJaRespondeu } from "@/lib/data/pesquisa";
 
 export default async function PortalPage() {
-  const token = cookies().get(CLIENTE_SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(CLIENTE_SESSION_COOKIE)?.value;
   const sessao = await lerSessaoCliente(token);
   const primeiroNome = sessao?.nome?.split(" ")[0] ?? "";
 

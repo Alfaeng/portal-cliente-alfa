@@ -9,7 +9,7 @@ import { CpfLoginForm } from "@/components/cliente/CpfLoginForm";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
 
 export default async function LoginPage() {
-  const token = cookies().get(CLIENTE_SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(CLIENTE_SESSION_COOKIE)?.value;
   const sessao = await lerSessaoCliente(token);
   if (sessao) redirect("/portal");
 

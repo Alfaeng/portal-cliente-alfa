@@ -18,11 +18,11 @@ import { formatDateLong } from "@/lib/utils";
 // primeira vez, mesmo depois de salvar novas etapas/fotos no admin.
 export const dynamic = "force-dynamic";
 
-export default async function EmpreendimentoPage({ params }: { params: { slug: string } }) {
-  const sessao = await lerSessaoCliente(cookies().get(CLIENTE_SESSION_COOKIE)?.value);
+export default async function EmpreendimentoPage({ params }: { params: Promise<{ slug: string }> }) {
+  const sessao = await lerSessaoCliente((await cookies()).get(CLIENTE_SESSION_COOKIE)?.value);
   if (!sessao) notFound();
 
-  const detalhe = await buscarEmpreendimentoPorSlug(params.slug, sessao.clienteId);
+  const detalhe = await buscarEmpreendimentoPorSlug((await params).slug, sessao.clienteId);
   if (!detalhe) notFound();
 
   const { empreendimento, etapasVisiveis, fotos } = detalhe;

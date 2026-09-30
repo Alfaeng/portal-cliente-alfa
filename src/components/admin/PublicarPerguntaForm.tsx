@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { publicarPergunta, type PesquisaFormState } from "@/app/actions/pesquisa";
 
 const initialState: PesquisaFormState = {};
@@ -19,7 +20,7 @@ function PublicarButton() {
 }
 
 export function PublicarPerguntaForm({ perguntaAtual }: { perguntaAtual: string | null }) {
-  const [state, formAction] = useFormState(publicarPergunta, initialState);
+  const [state, formAction] = useActionState(publicarPergunta, initialState);
 
   return (
     <div className="bg-surface border border-line rounded p-6 sm:p-8 mb-6">

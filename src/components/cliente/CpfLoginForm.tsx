@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { useState } from "react";
 import { loginComCpf, type LoginState } from "@/app/actions/auth";
 import { maskCpf } from "@/lib/utils";
@@ -21,7 +22,7 @@ function EntrarButton() {
 }
 
 export function CpfLoginForm() {
-  const [state, formAction] = useFormState(loginComCpf, initialState);
+  const [state, formAction] = useActionState(loginComCpf, initialState);
   const [cpf, setCpf] = useState("");
 
   return (

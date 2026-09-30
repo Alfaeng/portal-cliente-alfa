@@ -39,8 +39,8 @@ export function hashParaChave(valor: string): string {
 }
 
 /** IP de quem fez a requisição (a Vercel preenche esses cabeçalhos). */
-export function ipDaRequisicao(): string {
-  const h = headers();
+export async function ipDaRequisicao(): Promise<string> {
+  const h = await headers();
   const encaminhado = h.get("x-forwarded-for")?.split(",")[0]?.trim();
   return encaminhado || h.get("x-real-ip") || "desconhecido";
 }

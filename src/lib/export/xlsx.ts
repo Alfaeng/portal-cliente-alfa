@@ -1,65 +1,65 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
+import { neutralizarFormula } from "@/lib/security/sanitize";
 import type { CampanhaPesquisa, RespostaPesquisaComCliente } from "@/types/database";
 
 /**
  * Gera um .xlsx com os dados brutos das respostas de uma (ou mais)
  * campanhas de pesquisa de satisfação.
  */
-export function gerarExcelRespostas(
+export async function gerarExcelRespostas(
   campanhas: CampanhaPesquisa[],
   respostasPorCampanha: Record<string, RespostaPesquisaComCliente[]>
-): Buffer {
-  const wb = XLSX.utils.book_new();
+): Promise<Buffer> {
+  const wb = new ExcelJS.Workbook();
 
-  const linhas: Record<string, string | number>[] = [];
+  const sheet = wb.addWorksheet("Respostas");
+  sheet.columns = [
+    { header: "Pergunta", key: "pergunta", width: 40 },
+    { header: "Periodo_Inicio", key: "inicio", width: 14 },
+    { header: "Periodo_Fim", key: "fim", width: 14 },
+    { header: "Status", key: "status", width: 10 },
+    { header: "Cliente", key: "cliente", width: 26 },
+    { header: "CPF", key: "cpf", width: 16 },
+    { header: "Nota", key: "nota", width: 8 },
+    { header: "Data_Resposta", key: "data", width: 20 },
+  ];
+
+  let total = 0;
   for (const campanha of campanhas) {
-    const respostas = respostasPorCampanha[campanha.id] ?? [];
-    for (const resposta of respostas) {
-      linhas.push({
-        Pergunta: campanha.pergunta,
-        Periodo_Inicio: campanha.periodo_inicio,
-        Periodo_Fim: campanha.periodo_fim ?? "",
-        Status: campanha.status,
-        Cliente: resposta.cliente?.nome ?? "(não identificado)",
-        CPF: resposta.cliente?.cpf ?? "",
-        Nota: resposta.nota,
-        Data_Resposta: new Date(resposta.created_at).toLocaleString("pt-BR"),
+    for (const resposta of respostasPorCampanha[campanha.id] ?? []) {
+      sheet.addRow({
+        pergunta: neutralizarFormula(campanha.pergunta),
+        inicio: campanha.periodo_inicio,
+        fim: campanha.periodo_fim ?? "",
+        status: campanha.status,
+        cliente: neutralizarFormula(resposta.cliente?.nome ?? "(não identificado)"),
+        cpf: resposta.cliente?.cpf ?? "",
+        nota: resposta.nota,
+        data: new Date(resposta.created_at).toLocaleString("pt-BR"),
       });
+      total += 1;
     }
   }
+  if (total === 0) sheet.addRow({ pergunta: "Nenhuma resposta neste período" });
 
-  const sheet = XLSX.utils.json_to_sheet(
-    linhas.length > 0 ? linhas : [{ Aviso: "Nenhuma resposta neste período" }]
-  );
-  sheet["!cols"] = [
-    { wch: 40 },
-    { wch: 14 },
-    { wch: 14 },
-    { wch: 10 },
-    { wch: 26 },
-    { wch: 16 },
-    { wch: 8 },
-    { wch: 20 },
+  const resumo = wb.addWorksheet("Resumo");
+  resumo.columns = [
+    { header: "Pergunta", key: "pergunta", width: 40 },
+    { header: "Status", key: "status", width: 10 },
+    { header: "Total_Respostas", key: "total", width: 16 },
+    { header: "Media", key: "media", width: 8 },
   ];
-  XLSX.utils.book_append_sheet(wb, sheet, "Respostas");
-
-  const resumo = campanhas.map((c) => {
+  for (const c of campanhas) {
     const respostas = respostasPorCampanha[c.id] ?? [];
     const media =
-      respostas.length > 0
-        ? respostas.reduce((acc, r) => acc + r.nota, 0) / respostas.length
-        : 0;
-    return {
-      Pergunta: c.pergunta,
-      Status: c.status,
-      Total_Respostas: respostas.length,
-      Media: Number(media.toFixed(2)),
-    };
-  });
-  const resumoSheet = XLSX.utils.json_to_sheet(resumo);
-  resumoSheet["!cols"] = [{ wch: 40 }, { wch: 10 }, { wch: 16 }, { wch: 8 }];
-  XLSX.utils.book_append_sheet(wb, resumoSheet, "Resumo");
+      respostas.length > 0 ? respostas.reduce((acc, r) => acc + r.nota, 0) / respostas.length : 0;
+    resumo.addRow({
+      pergunta: neutralizarFormula(c.pergunta),
+      status: c.status,
+      total: respostas.length,
+      media: Number(media.toFixed(2)),
+    });
+  }
 
-  const out = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
-  return out as Buffer;
+  return Buffer.from(await wb.xlsx.writeBuffer());
 }

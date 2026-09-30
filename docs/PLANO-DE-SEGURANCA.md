@@ -176,7 +176,9 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] Trocar o `dangerouslySetInnerHTML` de `ServicoIcon` por componentes SVG.
 - [ ] SQL injection: o risco é baixo, porque todo acesso passa pelo PostgREST parametrizado. Manter a regra de **nunca** montar SQL com string e revisar isso nas funções novas.
 
-### Fase 5 — Dependências (8–12h)
+### Fase 5 — Dependências (8–12h) ✅ concluída em 30/09/2026
+
+> Next 14 → 15.5.26, React 18 → 19, `xlsx` → `exceljs`, `postcss` e `nanoid` atualizados por sobrescrita de versão. `npm audit`: **0 vulnerabilidades** (antes: 4, sendo 1 crítica). O CI ainda precisa ser criado para barrar regressões (fase 0).
 - [ ] Atualizar o Next 14 para 15. `cookies()` passa a ser assíncrono e é preciso revisar o cache. Com isso o `postcss` interno também é corrigido.
 - [ ] Trocar `xlsx` por `exceljs`.
 - [ ] Atualizar `@supabase/ssr` e `@supabase/supabase-js`.

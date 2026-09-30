@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { importarClientesCsv, type ImportState } from "@/app/actions/clientes";
 
 const initialState: ImportState = {};
@@ -19,7 +20,7 @@ function ImportarButton() {
 }
 
 export function ClientesImport() {
-  const [state, formAction] = useFormState(importarClientesCsv, initialState);
+  const [state, formAction] = useActionState(importarClientesCsv, initialState);
 
   return (
     <div className="bg-surface border border-line rounded p-6 sm:p-8 mb-6">
