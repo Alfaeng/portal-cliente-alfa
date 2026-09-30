@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { ServicosBand } from "@/components/site/ServicosBand";
@@ -6,12 +7,16 @@ import { EmpreendimentoCard } from "@/components/cliente/EmpreendimentoCard";
 import { SurveyBanner } from "@/components/cliente/SurveyBanner";
 import { LogoutButton } from "@/components/cliente/LogoutButton";
 import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-session";
+import { clienteAceitouPolitica } from "@/lib/lgpd";
 import { listarEmpreendimentosDoCliente } from "@/lib/data/empreendimentos";
 import { buscarCampanhaAtiva, clienteJaRespondeu } from "@/lib/data/pesquisa";
 
 export default async function PortalPage() {
   const token = (await cookies()).get(CLIENTE_SESSION_COOKIE)?.value;
   const sessao = await lerSessaoCliente(token);
+  // Antes de mostrar qualquer obra, o cliente precisa ter tomado ciência da política atual.
+  if (sessao && !(await clienteAceitouPolitica(sessao.clienteId))) redirect("/portal/aceite");
+
   const primeiroNome = sessao?.nome?.split(" ")[0] ?? "";
 
   const [empreendimentos, campanha] = await Promise.all([

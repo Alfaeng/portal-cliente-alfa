@@ -3,6 +3,7 @@
 import Papa from "papaparse";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
 import { z } from "zod";
 import { cpfValido, onlyDigits, slugify } from "@/lib/utils";
@@ -36,7 +37,7 @@ export async function importarClientesCsv(
   _prevState: ImportState,
   formData: FormData
 ): Promise<ImportState> {
-  await exigirAdmin(["administrador"]);
+  const usuario = await exigirAdmin(["administrador"]);
   const supabase = createSupabaseServerClient();
 
   const arquivo = formData.get("arquivo");
@@ -67,7 +68,7 @@ export async function importarClientesCsv(
     return { error: `A planilha tem mais de ${LIMITE_CSV_LINHAS} linhas. Divida em partes menores.` };
   }
 
-  const linhasValidas: { cpf: string; nome: string; email: string | null; telefone: string | null; ativo: boolean }[] = [];
+  const linhasValidas: { cpf: string; nome: string; email: string | null; telefone: string | null }[] = [];
   const obrasDoCpf = new Map<string, Set<string>>();
   const naoEncontradas = new Set<string>();
   let ignorados = 0;
@@ -84,7 +85,6 @@ export async function importarClientesCsv(
       nome,
       email: emailOuNulo(linha.email),
       telefone: telefoneOuNulo(linha.telefone),
-      ativo: true,
     });
 
     // Coluna opcional "empreendimento": um ou mais, separados por ; ou |
@@ -105,20 +105,28 @@ export async function importarClientesCsv(
     return { error: "Nenhuma linha válida encontrada. Confira as colunas: cpf, nome, email, telefone." };
   }
 
-  const { data: salvos, error } = await supabase
-    .from("clientes")
-    .upsert(linhasValidas, { onConflict: "cpf" })
-    .select("id, cpf");
+  // O banco guarda só o código (hash) do CPF; o número em si não é gravado.
+  // A função devolve, para cada linha enviada (ordem 1, 2, 3…), o id do cliente.
+  const admin = createSupabaseAdminClient();
+  const { data: salvos, error } = await admin.rpc("importar_clientes", {
+    p_admin: usuario.id,
+    p_linhas: linhasValidas,
+  });
 
   if (error) {
+    console.error("importarClientesCsv", error.message);
     return { error: "Erro ao importar. Verifique o formato do arquivo e tente novamente." };
   }
 
   // Só ADICIONA vínculos (nunca remove): tirar o acesso de alguém é uma
   // decisão manual, feita na edição do cliente.
-  const novosVinculos = (salvos ?? []).flatMap((c) =>
-    [...(obrasDoCpf.get(c.cpf) ?? [])].map((empreendimento_id) => ({ cliente_id: c.id, empreendimento_id }))
-  );
+  const novosVinculos = ((salvos ?? []) as { ordem: number; id: string }[]).flatMap((linha) => {
+    const cpf = linhasValidas[linha.ordem - 1]?.cpf;
+    return [...(cpf ? obrasDoCpf.get(cpf) ?? [] : [])].map((empreendimento_id) => ({
+      cliente_id: linha.id,
+      empreendimento_id,
+    }));
+  });
   if (novosVinculos.length > 0) {
     const { error: erroVinculos } = await supabase
       .from("cliente_empreendimentos")
@@ -149,8 +157,7 @@ export async function criarClienteManual(
   _prevState: CriarClienteState,
   formData: FormData
 ): Promise<CriarClienteState> {
-  await exigirAdmin(["administrador"]);
-  const supabase = createSupabaseServerClient();
+  const usuario = await exigirAdmin(["administrador"]);
 
   const cpf = onlyDigits(campo(formData, "cpf"));
   const nome = campo(formData, "nome").trim();
@@ -167,12 +174,13 @@ export async function criarClienteManual(
   const email = emailBruto ? emailSchema.parse(emailBruto) : "";
   const telefone = telefoneBruto;
 
-  const { error } = await supabase.from("clientes").insert({
-    cpf,
-    nome,
-    email: email || null,
-    telefone: telefone || null,
-    ativo: true,
+  // O banco guarda só o código (hash) e a versão mascarada do CPF.
+  const { error } = await createSupabaseAdminClient().rpc("criar_cliente", {
+    p_admin: usuario.id,
+    p_cpf: cpf,
+    p_nome: nome,
+    p_email: email,
+    p_telefone: telefone,
   });
 
   if (error) {
@@ -211,10 +219,10 @@ export interface ExcluirClienteState {
   error?: string;
 }
 
-// Exclusão de um cliente cadastrado errado. Se o cliente já respondeu
-// alguma pesquisa de satisfação, o banco bloqueia a exclusão (chave
-// estrangeira em respostas_pesquisa) para não perder aquele histórico —
-// nesse caso devolvemos uma mensagem explicando em vez de deixar quebrar.
+// Exclusão de um cliente (eliminação de dados, LGPD art. 18). As respostas de
+// pesquisa dele continuam no histórico, mas sem identificação (o vínculo com o
+// cliente vira nulo). Os vínculos com empreendimentos e os aceites da política
+// saem junto.
 export async function excluirCliente(id: string): Promise<ExcluirClienteState> {
   await exigirAdmin(["administrador"]);
   const supabase = createSupabaseServerClient();

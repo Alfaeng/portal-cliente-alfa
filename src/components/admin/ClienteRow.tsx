@@ -5,10 +5,6 @@ import { useRouter } from "next/navigation";
 import { atualizarCliente, atualizarVinculosCliente, excluirCliente } from "@/app/actions/clientes";
 import type { Cliente } from "@/types/database";
 
-function formatCpf(cpf: string) {
-  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-}
-
 export interface ObraOpcao {
   id: string;
   nome: string;
@@ -37,7 +33,9 @@ export function ClienteRow({
   const [erroExclusao, setErroExclusao] = useState<string | null>(null);
 
   async function handleExcluir() {
-    const ok = window.confirm(`Excluir o cliente "${cliente.nome}"? Essa ação não pode ser desfeita.`);
+    const ok = window.confirm(
+      `Excluir o cliente "${cliente.nome}"? Essa ação não pode ser desfeita. As respostas de pesquisa dele continuam no histórico, sem identificação.`
+    );
     if (!ok) return;
 
     setExcluindo(true);
@@ -61,7 +59,7 @@ export function ClienteRow({
           />
         </td>
         <td className="py-2.5 pr-3 border-b border-line text-muted text-[13.5px]">
-          {formatCpf(cliente.cpf)}
+          {cliente.cpf_mascarado ?? "—"}
         </td>
         <td className="py-2.5 pr-3 border-b border-line">
           <input
@@ -137,7 +135,7 @@ export function ClienteRow({
           {cliente.nome}
         </td>
         <td className="py-3 pr-3 border-b border-line text-muted text-[13.5px]">
-          {formatCpf(cliente.cpf)}
+          {cliente.cpf_mascarado ?? "—"}
         </td>
         <td className="py-3 pr-3 border-b border-line text-muted text-[13.5px]">
           {cliente.email ?? "—"}
@@ -160,6 +158,13 @@ export function ClienteRow({
           >
             {cliente.ativo ? "Ativo" : "Inativo"}
           </span>
+          <a
+            href={`/api/admin/clientes/${cliente.id}/dados`}
+            className="text-navy hover:text-gold active:text-gold transition-colors mr-3"
+            title="Baixa um arquivo com todos os dados que a Alfa guarda sobre este cliente"
+          >
+            Baixar dados
+          </a>
           <button
             type="button"
             disabled={excluindo}

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
+import { registrarEvento } from "@/lib/security/auditoria";
 import { listarCampanhasComEstatisticas, buscarRespostasBrutas } from "@/lib/data/pesquisa";
 import { gerarExcelRespostas } from "@/lib/export/xlsx";
 
 export async function GET(request: NextRequest) {
-  await exigirAdmin(["editor_completo", "administrador"]);
+  const usuario = await exigirAdmin(["editor_completo", "administrador"]);
 
   const campanhaId = request.nextUrl.searchParams.get("campanha");
   const todasCampanhas = await listarCampanhasComEstatisticas();
@@ -15,6 +16,8 @@ export async function GET(request: NextRequest) {
   }
 
   const respostas = await buscarRespostasBrutas(campanhas.map((c) => c.id));
+  await registrarEvento(usuario.id, "exportou_pesquisa", "campanhas_pesquisa", campanhaId ?? "todas", { formato: "xlsx" });
+
   const buffer = await gerarExcelRespostas(campanhas, respostas);
 
   return new NextResponse(new Uint8Array(buffer), {

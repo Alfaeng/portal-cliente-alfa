@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
+import { registrarEvento } from "@/lib/security/auditoria";
 import { listarCampanhasComEstatisticas } from "@/lib/data/pesquisa";
 import { gerarPdfPesquisa } from "@/lib/export/pdf";
 
 export async function GET(request: NextRequest) {
-  await exigirAdmin(["editor_completo", "administrador"]);
+  const usuario = await exigirAdmin(["editor_completo", "administrador"]);
 
   const campanhaId = request.nextUrl.searchParams.get("campanha");
   const todasCampanhas = await listarCampanhasComEstatisticas();
@@ -13,6 +14,8 @@ export async function GET(request: NextRequest) {
   if (campanhas.length === 0) {
     return NextResponse.json({ error: "Campanha não encontrada." }, { status: 404 });
   }
+
+  await registrarEvento(usuario.id, "exportou_pesquisa", "campanhas_pesquisa", campanhaId ?? "todas", { formato: "pdf" });
 
   const buffer = await gerarPdfPesquisa(campanhas);
 

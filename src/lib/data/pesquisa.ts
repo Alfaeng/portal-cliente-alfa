@@ -88,7 +88,7 @@ export async function buscarRespostasBrutas(
   // resultados antes (ver lição em fotos/etapas); aqui é só .in().
   const { data } = await supabase
     .from("respostas_pesquisa")
-    .select("*, cliente:clientes(nome, cpf)")
+    .select("*, cliente:clientes(nome, cpf_mascarado)")
     .in("campanha_id", campanhaIds);
 
   const agrupado: Record<string, import("@/types/database").RespostaPesquisaComCliente[]> = {};

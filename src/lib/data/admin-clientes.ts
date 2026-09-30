@@ -12,7 +12,7 @@ export async function listarClientesRecentes(limite = 25): Promise<ClientesComVi
   const supabase = createSupabaseServerClient();
   const { data, count } = await supabase
     .from("clientes")
-    .select("*", { count: "exact" })
+    .select("id, cpf_mascarado, nome, email, telefone, ativo, importado_em, updated_at", { count: "exact" })
     .order("importado_em", { ascending: false })
     .limit(limite);
 

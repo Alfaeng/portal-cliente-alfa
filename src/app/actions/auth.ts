@@ -28,19 +28,17 @@ const LIMITE_POR_IP = 20;
 
 async function buscarClientePorCpf(cpf: string): Promise<{ id: string; nome: string } | null> {
   try {
+    // O banco compara o CPF com o código (hash) guardado; o número em si não é gravado.
     const supabase = createSupabaseAdminClient();
-    const { data, error } = await supabase
-      .from("clientes")
-      .select("id, nome, ativo")
-      .eq("cpf", cpf)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc("buscar_cliente_por_cpf", { p_cpf: cpf });
 
     if (error) {
       console.error("login cliente: erro ao consultar clientes", error.message);
       return null;
     }
-    if (!data || !data.ativo) return null;
-    return { id: data.id, nome: data.nome };
+    const cliente = Array.isArray(data) ? data[0] : null;
+    if (!cliente || !cliente.ativo) return null;
+    return { id: cliente.id, nome: cliente.nome };
   } catch (err) {
     console.error("login cliente: falha inesperada", err);
     return null;

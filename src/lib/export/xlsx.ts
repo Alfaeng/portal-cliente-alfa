@@ -19,7 +19,7 @@ export async function gerarExcelRespostas(
     { header: "Periodo_Fim", key: "fim", width: 14 },
     { header: "Status", key: "status", width: 10 },
     { header: "Cliente", key: "cliente", width: 26 },
-    { header: "CPF", key: "cpf", width: 16 },
+    { header: "CPF_Mascarado", key: "cpf", width: 16 },
     { header: "Nota", key: "nota", width: 8 },
     { header: "Data_Resposta", key: "data", width: 20 },
   ];
@@ -33,7 +33,7 @@ export async function gerarExcelRespostas(
         fim: campanha.periodo_fim ?? "",
         status: campanha.status,
         cliente: neutralizarFormula(resposta.cliente?.nome ?? "(não identificado)"),
-        cpf: resposta.cliente?.cpf ?? "",
+        cpf: resposta.cliente?.cpf_mascarado ?? "",
         nota: resposta.nota,
         data: new Date(resposta.created_at).toLocaleString("pt-BR"),
       });
