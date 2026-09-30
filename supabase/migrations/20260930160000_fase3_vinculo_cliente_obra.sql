@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Fase 3 — Vínculo entre cliente e empreendimento
--- Rollback: supabase/rollback/20260930160000_fase3_vinculo_cliente_obra.down.sql
 --
 -- Cada cliente só enxerga no portal os empreendimentos ligados a ele nesta
 -- tabela. Cliente sem vínculo não vê nenhuma obra (privacidade por padrão).

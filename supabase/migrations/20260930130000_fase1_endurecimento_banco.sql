@@ -1,6 +1,5 @@
 -- =====================================================================
 -- Fase 1 — Endurecimento do banco (sem mudança de comportamento do app)
--- Rollback: supabase/rollback/20260930130000_fase1_endurecimento_banco.down.sql
 --
 -- 1. Funções: ninguém anônimo executa funções SECURITY DEFINER via /rpc.
 -- 2. Políticas: separadas por comando, `to authenticated`, sem duplicatas.

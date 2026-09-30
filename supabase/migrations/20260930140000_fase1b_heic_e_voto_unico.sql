@@ -1,11 +1,10 @@
 -- =====================================================================
 -- Fase 1b — HEIC nos uploads e uma resposta por cliente em cada pesquisa
--- Rollback: supabase/rollback/20260930140000_fase1b_heic_e_voto_unico.down.sql
 -- =====================================================================
 
 -- Fotos de iPhone (HEIC/HEIF) passam a ser aceitas no upload.
--- Atenção: a maioria dos navegadores (Chrome, Edge, Firefox) não exibe HEIC;
--- a conversão para JPEG no envio está prevista na fase 4 do plano.
+-- A maioria dos navegadores não exibe HEIC, por isso o envio de fotos converte
+-- tudo para JPEG antes de salvar (ver src/lib/media/processar-foto.ts).
 update storage.buckets
 set allowed_mime_types = array['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif']
 where id in ('logos', 'obras');
