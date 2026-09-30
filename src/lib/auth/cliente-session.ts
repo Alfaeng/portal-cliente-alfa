@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from "jose";
 
 const COOKIE_NAME = "alfa_cliente_session";
-const SESSION_DURATION_DAYS = 30;
+const SESSION_DURATION_DAYS = 7;
 
 function getSecret() {
   const secret = process.env.SESSION_SECRET;

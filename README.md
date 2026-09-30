@@ -8,7 +8,7 @@ Tailwind CSS + Supabase.
 
 - Next.js 14 (App Router, Server Actions)
 - Tailwind CSS
-- Supabase (Postgres + Auth + Storage + Edge Functions)
+- Supabase (Postgres + Auth + Storage)
 - `xlsx` (SheetJS) e `pdf-lib` para exportação de relatórios
 - `jose` para assinar a sessão simples do login por CPF
 - `papaparse` para importar a base de clientes via CSV
@@ -31,8 +31,6 @@ cp .env.local.example .env.local
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`: do painel do Supabase.
 - `SUPABASE_SERVICE_ROLE_KEY`: idem — **nunca** exponha essa chave no client.
 - `SESSION_SECRET`: gere com `openssl rand -base64 48`.
-- `CPF_LOGIN_INTERNAL_KEY`: gere outra string aleatória e configure a
-  **mesma** como secret da edge function (passo 5).
 - `NEXT_PUBLIC_SITE_URL`: URL pública do site (usada nos links de convite).
 
 ## 3. Rodar o banco de dados
@@ -67,27 +65,14 @@ já existente (ninguém convida o primeiro). Para criar o primeiro:
 Depois disso, use a tela **/admin → Usuários** para convidar o restante da
 equipe — cada pessoa recebe um e-mail e cria a própria senha.
 
-## 5. Deploy da Edge Function (login por CPF)
-
-```bash
-supabase functions deploy cpf-login --no-verify-jwt
-supabase secrets set CPF_LOGIN_INTERNAL_KEY=mesma-string-do-.env.local
-```
-
-Se a function ainda não estiver publicada, o login por CPF cai
-automaticamente em um fallback que consulta a tabela `clientes` direto do
-servidor Next.js — útil durante o desenvolvimento, mas o ideal em produção
-é ter a function publicada (mantém a service role key fora do processo
-Next.js).
-
-## 6. Importar clientes (base do Sienge)
+## 5. Importar clientes (base do Sienge)
 
 Em **/admin/clientes**, envie um CSV com as colunas `cpf, nome, email,
 telefone`. Clientes com o mesmo CPF são atualizados; CPFs novos são
 cadastrados. O CPF é usado só como porteira de login — nenhum dado de
 contrato fica no portal.
 
-## 7. Rodar localmente
+## 6. Rodar localmente
 
 ```bash
 npm run dev
@@ -150,6 +135,4 @@ supabase/
   migrations/      schema versionado (tabelas, RLS, storage)
   rollback/        scripts que desfazem cada migration
   seed.sql         dados de exemplo (opcional)
-  functions/
-    cpf-login/     Edge Function do login por CPF
 ```

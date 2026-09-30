@@ -17,8 +17,8 @@ export default function SetPasswordPage() {
     e.preventDefault();
     setErro(null);
 
-    if (senha.length < 8) {
-      setErro("A senha precisa ter pelo menos 8 caracteres.");
+    if (senha.length < 10 || !/[a-z]/.test(senha) || !/[A-Z]/.test(senha) || !/\d/.test(senha)) {
+      setErro("A senha precisa ter pelo menos 10 caracteres, com letra maiúscula, minúscula e número.");
       return;
     }
     if (senha !== confirmar) {
@@ -58,7 +58,7 @@ export default function SetPasswordPage() {
             <input
               type="password"
               required
-              minLength={8}
+              minLength={10}
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               className="tap-target w-full py-2.5 px-2.5 border border-[#D5D9DF] rounded text-[13.5px] focus:outline-none focus:border-navy"
@@ -71,7 +71,7 @@ export default function SetPasswordPage() {
             <input
               type="password"
               required
-              minLength={8}
+              minLength={10}
               value={confirmar}
               onChange={(e) => setConfirmar(e.target.value)}
               className="tap-target w-full py-2.5 px-2.5 border border-[#D5D9DF] rounded text-[13.5px] focus:outline-none focus:border-navy"

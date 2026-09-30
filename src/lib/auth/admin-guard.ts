@@ -17,6 +17,11 @@ export async function exigirAdmin(niveisPermitidos?: NivelAcesso[]): Promise<Usu
 
   if (!user) redirect("/admin/login");
 
+  // Defesa em profundidade: rotas fora do middleware (ex.: /api/export) e
+  // Server Actions também exigem a verificação em duas etapas.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") redirect("/admin/mfa");
+
   const { data: usuarioAdmin } = await supabase
     .from("usuarios_admin")
     .select("*")
