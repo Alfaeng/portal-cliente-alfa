@@ -57,7 +57,7 @@ jobs:
 
       - name: Guardar por 30 dias
         if: steps.config.outputs.ativo == 'sim'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backup-banco
           path: backup-*.dump.enc
