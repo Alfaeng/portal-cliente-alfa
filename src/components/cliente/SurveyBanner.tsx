@@ -3,10 +3,18 @@
 import { useState, useTransition } from "react";
 import { responderPesquisa } from "@/app/actions/survey";
 
-export function SurveyBanner({ campanhaId, pergunta }: { campanhaId: string; pergunta: string }) {
+export function SurveyBanner({
+  campanhaId,
+  pergunta,
+  jaRespondeu = false,
+}: {
+  campanhaId: string;
+  pergunta: string;
+  jaRespondeu?: boolean;
+}) {
   const [nota, setNota] = useState(0);
   const [hover, setHover] = useState(0);
-  const [enviado, setEnviado] = useState(false);
+  const [enviado, setEnviado] = useState(jaRespondeu);
   const [isPending, startTransition] = useTransition();
 
   function votar(valor: number) {
@@ -14,7 +22,7 @@ export function SurveyBanner({ campanhaId, pergunta }: { campanhaId: string; per
     setNota(valor);
     startTransition(async () => {
       const res = await responderPesquisa(campanhaId, valor);
-      if (res.ok) setEnviado(true);
+      if (res.ok || res.jaRespondeu) setEnviado(true);
     });
   }
 

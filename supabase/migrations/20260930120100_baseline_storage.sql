@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Storage buckets — Portal do Cliente Alfa
--- Rode depois do schema.sql
+-- Rode depois do baseline_schema
 -- =====================================================================
 
 insert into storage.buckets (id, name, public)

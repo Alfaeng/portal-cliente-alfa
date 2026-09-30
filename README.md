@@ -37,13 +37,18 @@ cp .env.local.example .env.local
 
 ## 3. Rodar o banco de dados
 
-No SQL Editor do Supabase (ou via `supabase db push` com a CLI), rode
-nesta ordem:
+O banco é versionado em `supabase/migrations/` (ordem cronológica). Cada
+migration tem um rollback correspondente em `supabase/rollback/`. Use a
+Supabase CLI (`supabase db push`) ou aplique os arquivos, em ordem, no SQL
+Editor. **Aplique sempre primeiro no projeto de teste (staging).**
 
-1. `supabase/schema.sql` — tabelas, RLS, funções e triggers.
-2. `supabase/storage.sql` — buckets `logos` e `obras` e políticas de acesso.
-3. `supabase/seed.sql` (opcional) — dados de exemplo para testar o portal
-   antes da primeira importação real do Sienge.
+1. `20260930120000_baseline_schema.sql` — tabelas, RLS, funções e triggers.
+2. `20260930120100_baseline_storage.sql` — buckets `logos` e `obras`.
+3. `20260930130000_fase1_endurecimento_banco.sql` — políticas por comando,
+   funções não expostas via API, limites de upload e índices.
+4. `supabase/seed.sql` (opcional, só em teste) — dados de exemplo.
+
+Plano completo de segurança, LGPD e operação: `docs/PLANO-DE-SEGURANCA.md`.
 
 ## 4. Criar o primeiro administrador
 
@@ -101,7 +106,7 @@ npm run dev
   consulta) e aparecem sozinhas quando o admin lançar um percentual > 0.
 - **Fotos**: ao enviar fotos novas, as atuais recebem soft-delete
   (`deleted_at`) e continuam recuperáveis por ~30 dias. Agende a função
-  `public.purgar_fotos_excluidas()` (ver comentário em `schema.sql`) para
+  `public.purgar_fotos_excluidas()` (ver comentário em `supabase/migrations/20260930120000_baseline_schema.sql`) para
   limpar definitivamente os registros antigos; os arquivos no Storage
   correspondentes podem ser removidos por uma rotina agendada separada.
 - **Pesquisa de satisfação**: cada pergunta é uma campanha com status
@@ -129,7 +134,7 @@ npm run dev
 - **RLS**: as leituras/escritas do portal do cliente (CPF, empreendimentos,
   etapas, fotos, resposta de pesquisa) rodam no servidor Next.js com a
   service role key, que ignora RLS por desenho do Supabase. As políticas
-  de RLS em `schema.sql` protegem o acesso via Supabase Auth (área admin),
+  de RLS em `supabase/migrations` protegem o acesso via Supabase Auth (área admin),
   conforme o `nivel_acesso` de cada usuário.
 
 ## Estrutura
@@ -142,8 +147,8 @@ src/
   lib/             clients Supabase, auth, exportação, dados, utils
   types/           tipos das tabelas do banco
 supabase/
-  schema.sql       tabelas, RLS, funções, triggers
-  storage.sql      buckets e políticas de storage
+  migrations/      schema versionado (tabelas, RLS, storage)
+  rollback/        scripts que desfazem cada migration
   seed.sql         dados de exemplo (opcional)
   functions/
     cpf-login/     Edge Function do login por CPF
