@@ -5,6 +5,9 @@ import { logoutAdmin } from "@/app/actions/admin-auth";
 import { mfaAdminObrigatorio } from "@/lib/auth/mfa-config";
 import { ALFA_LOGO_URL } from "@/lib/site-content";
 
+// Depende da sessão (cookies) em toda requisição.
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // O middleware já garante que qualquer rota /admin/* (exceto /admin/login)
   // só é alcançada com uma sessão válida. Aqui só buscamos o usuário sem

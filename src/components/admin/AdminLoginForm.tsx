@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { loginAdmin, type AdminLoginState } from "@/app/actions/admin-auth";
 
 const initialState: AdminLoginState = {};
@@ -19,7 +20,7 @@ function EntrarButton() {
 }
 
 export function AdminLoginForm() {
-  const [state, formAction] = useFormState(loginAdmin, initialState);
+  const [state, formAction] = useActionState(loginAdmin, initialState);
 
   return (
     <form action={formAction} className="bg-surface border border-line rounded p-8">

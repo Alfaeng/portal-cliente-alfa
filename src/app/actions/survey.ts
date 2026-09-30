@@ -5,7 +5,7 @@ import { CLIENTE_SESSION_COOKIE, lerSessaoCliente } from "@/lib/auth/cliente-ses
 import { registrarResposta } from "@/lib/data/pesquisa";
 
 export async function responderPesquisa(campanhaId: string, nota: number) {
-  const token = cookies().get(CLIENTE_SESSION_COOKIE)?.value;
+  const token = (await cookies()).get(CLIENTE_SESSION_COOKIE)?.value;
   const sessao = await lerSessaoCliente(token);
   if (!sessao) return { ok: false, jaRespondeu: false };
 

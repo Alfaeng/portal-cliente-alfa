@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
+import { useActionState } from "react";
 import { atualizarEmpreendimento, enviarFotos, type ObraFormState } from "@/app/actions/obras";
 import type { EmpreendimentoEtapa, Foto } from "@/types/database";
 import type { EmpreendimentoAdminDetalhe } from "@/lib/data/admin-empreendimentos";
@@ -24,8 +25,8 @@ function SalvarButton({ label }: { label: string }) {
 
 export function ObraEditor({ detalhe }: { detalhe: EmpreendimentoAdminDetalhe }) {
   const { empreendimento, etapas, fotos } = detalhe;
-  const [state, formAction] = useFormState(atualizarEmpreendimento, initialState);
-  const [fotoState, fotoAction] = useFormState(enviarFotos, initialState);
+  const [state, formAction] = useActionState(atualizarEmpreendimento, initialState);
+  const [fotoState, fotoAction] = useActionState(enviarFotos, initialState);
 
   return (
     <div className="bg-surface border border-line rounded p-6 sm:p-8">

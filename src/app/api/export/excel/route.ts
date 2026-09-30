@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const respostas = await buscarRespostasBrutas(campanhas.map((c) => c.id));
-  const buffer = gerarExcelRespostas(campanhas, respostas);
+  const buffer = await gerarExcelRespostas(campanhas, respostas);
 
   return new NextResponse(new Uint8Array(buffer), {
     headers: {

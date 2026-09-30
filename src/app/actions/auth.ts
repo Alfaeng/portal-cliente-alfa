@@ -57,7 +57,7 @@ export async function loginComCpf(_prevState: LoginState, formData: FormData): P
   // Limite de tentativas: por IP (quem varre vários CPFs) e por CPF (quem
   // insiste em um CPF só). A chave do CPF é um hash, nunca o número em si.
   const [okIp, okCpf] = await Promise.all([
-    dentroDoLimite(`login_cliente_ip:${ipDaRequisicao()}`, LIMITE_POR_IP, JANELA_LOGIN_SEGUNDOS),
+    dentroDoLimite(`login_cliente_ip:${(await ipDaRequisicao())}`, LIMITE_POR_IP, JANELA_LOGIN_SEGUNDOS),
     dentroDoLimite(`login_cliente_cpf:${hashParaChave(cpf)}`, LIMITE_POR_CPF, JANELA_LOGIN_SEGUNDOS),
   ]);
   if (!okIp || !okCpf) {
@@ -71,7 +71,7 @@ export async function loginComCpf(_prevState: LoginState, formData: FormData): P
 
   const token = await criarTokenSessaoCliente({ clienteId: cliente.id, nome: cliente.nome });
 
-  cookies().set(CLIENTE_SESSION_COOKIE, token, {
+  (await cookies()).set(CLIENTE_SESSION_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -83,6 +83,6 @@ export async function loginComCpf(_prevState: LoginState, formData: FormData): P
 }
 
 export async function logoutCliente() {
-  cookies().delete(CLIENTE_SESSION_COOKIE);
+  (await cookies()).delete(CLIENTE_SESSION_COOKIE);
   redirect("/");
 }
