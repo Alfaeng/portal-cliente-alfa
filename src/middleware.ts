@@ -11,11 +11,28 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    const { response, user } = await updateAdminSession(request);
+    const { response, user, aal } = await updateAdminSession(request);
 
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+
+    // Verificação em duas etapas obrigatória: sem o código do app
+    // autenticador (aal2), só a tela de verificação/cadastro é acessível.
+    const verificado = aal?.currentLevel === "aal2";
+    if (pathname === "/admin/mfa") {
+      if (verificado) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/admin/obras";
+        return NextResponse.redirect(url);
+      }
+      return response;
+    }
+    if (!verificado) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/mfa";
       return NextResponse.redirect(url);
     }
 

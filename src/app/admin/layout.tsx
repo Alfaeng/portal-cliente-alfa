@@ -18,6 +18,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return <>{children}</>;
   }
 
+  // Sem o segundo fator (código do app), mostra só a tela de verificação,
+  // sem o menu do admin.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal?.currentLevel !== "aal2") {
+    return <>{children}</>;
+  }
+
   const { data: usuario } = await supabase
     .from("usuarios_admin")
     .select("*")

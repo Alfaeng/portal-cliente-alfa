@@ -31,5 +31,10 @@ export async function updateAdminSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { response, user };
+  // Nível de autenticação: aal1 = só senha, aal2 = senha + código do app.
+  const { data: aal } = user
+    ? await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    : { data: null };
+
+  return { response, user, aal };
 }

@@ -127,7 +127,10 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
   - JWT de 1h;
   - CAPTCHA (Turnstile) nos logins.
 
-### Fase 2 — Autenticação (12–18h)
+### Fase 2 — Autenticação (12–18h) 🟡 em andamento (parte 1 entregue em 30/09/2026)
+
+> **Parte 1 (entregue):** limite de tentativas nos dois logins, mensagem igual para CPF inexistente ou inativo, edge function `cpf-login` e fallback removidos (o servidor consulta direto), verificação em duas etapas (app autenticador) obrigatória para admins, logout em todos os aparelhos, sessão do cliente de 30 para 7 dias e política de senha de 10+ caracteres no cadastro.
+> **Parte 2 (pendente):** login do cliente por código no e-mail. Depende de decidir o SMTP próprio e de confirmar que todos os clientes têm e-mail no Sienge. Também pendentes, no painel do Supabase: tempo de inatividade da sessão do admin (recurso do plano Pro) e política de senha do Auth.
 - [ ] Login do cliente com CPF + OTP por e-mail (D1). Mensagem sempre genérica e tempo de resposta constante.
 - [ ] Vincular `clientes.auth_user_id` a `auth.users`. Criar o usuário do Auth na primeira entrada ou na importação.
 - [ ] Rate limit com uma tabela `rate_limit` no Postgres e uma função atômica, sem fornecedor novo. Limites: 5 tentativas por CPF a cada 15 min e 20 por IP a cada 15 min. Complementar com regra de rate limit no firewall da Vercel.
