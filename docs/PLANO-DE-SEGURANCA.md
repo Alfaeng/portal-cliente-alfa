@@ -156,7 +156,10 @@ cliente), e a LGPD vem depois que o modelo de dados estabiliza.
 - [ ] Se a decisão 1 for "cada cliente vê só a própria obra": criar a tabela `cliente_empreendimentos`, a coluna de empreendimento no CSV do Sienge e filtrar na RLS (+4–6h).
 - [ ] Testes de RLS com pgTAP (extensão já disponível). Cada papel (`anon`, cliente, `editor_obras`, `editor_completo`, `administrador`) tenta ler e escrever cada tabela.
 
-### Fase 4 — Validação e sanitização (10–14h)
+### Fase 4 — Validação e sanitização (10–14h) ✅ concluída em 30/09/2026 (com 2 pendências)
+
+> **Entregue:** validação com `zod` em todas as ações do admin e na pesquisa do cliente; envio de fotos refeito (uma por vez, tipo conferido pelo conteúdo real, HEIC convertido para JPEG, rotação corrigida, metadados/GPS removidos, limite de 4 MB); CSV com limite de 2 MB e 10 mil linhas e e-mail/telefone validados; etapas só editáveis dentro da própria obra; convite de admin desfeito se o cadastro falhar; conteúdo do WordPress validado (só https do domínio da Alfa); ícones sem `dangerouslySetInnerHTML`; cabeçalhos de segurança (HSTS, X-Frame-Options, nosniff, Referrer-Policy, Permissions-Policy, COOP).
+> **Pendências:** (1) a política de conteúdo (CSP) está em modo **somente relatório** até confirmarmos, no navegador, que nada legítimo é barrado; depois trocamos para bloqueio. (2) o caminho HEIC só pode ser validado com um arquivo real de iPhone.
 - [ ] Schemas `zod` compartilhados para todas as Server Actions: UUIDs, percentuais de 0 a 100, textos com limite de tamanho, e-mail e telefone.
 - [ ] Upload:
   - validar o tipo real pelos *magic bytes*;

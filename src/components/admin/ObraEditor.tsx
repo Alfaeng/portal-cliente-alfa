@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useFormStatus } from "react-dom";
 import { useActionState } from "react";
-import { atualizarEmpreendimento, enviarFotos, type ObraFormState } from "@/app/actions/obras";
+import { atualizarEmpreendimento, type ObraFormState } from "@/app/actions/obras";
 import type { EmpreendimentoEtapa, Foto } from "@/types/database";
 import type { EmpreendimentoAdminDetalhe } from "@/lib/data/admin-empreendimentos";
 import { DeleteFotoButton } from "./DeleteFotoButton";
+import { FotosUploader } from "./FotosUploader";
 
 const initialState: ObraFormState = {};
 
@@ -26,7 +27,6 @@ function SalvarButton({ label }: { label: string }) {
 export function ObraEditor({ detalhe }: { detalhe: EmpreendimentoAdminDetalhe }) {
   const { empreendimento, etapas, fotos } = detalhe;
   const [state, formAction] = useActionState(atualizarEmpreendimento, initialState);
-  const [fotoState, fotoAction] = useActionState(enviarFotos, initialState);
 
   return (
     <div className="bg-surface border border-line rounded p-6 sm:p-8">
@@ -107,25 +107,7 @@ export function ObraEditor({ detalhe }: { detalhe: EmpreendimentoAdminDetalhe })
           <label className="block text-[10.5px] tracking-[.13em] uppercase text-muted mb-1.5">
             Fotos da obra
           </label>
-          <form action={fotoAction}>
-            <input type="hidden" name="empreendimento_id" value={empreendimento.id} />
-            <label
-              htmlFor="fotos"
-              className="block border-[1.5px] border-dashed border-[#C5CAD2] rounded p-6 text-center text-muted text-[12.5px] bg-[#FAFBFC] cursor-pointer tap-target"
-            >
-              Arraste as fotos aqui
-              <br />
-              ou clique para escolher
-              <input id="fotos" name="fotos" type="file" accept="image/*" multiple className="hidden" />
-            </label>
-            <div className="mt-3">
-              <SalvarButton label="Enviar fotos" />
-            </div>
-            {fotoState?.error && <p className="text-[12.5px] text-[#8A5252] mt-3">{fotoState.error}</p>}
-            {fotoState?.success && (
-              <p className="text-[12.5px] text-[#3F6B45] mt-3">Fotos atualizadas.</p>
-            )}
-          </form>
+          <FotosUploader empreendimentoId={empreendimento.id} />
 
           {fotos.length > 0 && (
             <div className="grid grid-cols-3 gap-2.5 mt-3.5">

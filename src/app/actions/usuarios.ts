@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { exigirAdmin } from "@/lib/auth/admin-guard";
+import { emailSchema, idSchema, campo } from "@/lib/validation";
 import type { NivelAcesso } from "@/types/database";
 
 export interface UsuarioFormState {
@@ -19,13 +20,14 @@ export async function convidarUsuario(
 ): Promise<UsuarioFormState> {
   const usuarioAtual = await exigirAdmin(["administrador"]);
 
-  const nome = String(formData.get("nome") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
-  const nivel = String(formData.get("nivel_acesso") ?? "") as NivelAcesso;
+  const nome = campo(formData, "nome").trim();
+  const emailValido = emailSchema.safeParse(campo(formData, "email"));
+  const nivel = campo(formData, "nivel_acesso") as NivelAcesso;
 
-  if (!nome || !email || !NIVEIS_VALIDOS.includes(nivel)) {
-    return { error: "Preencha nome, e-mail e nível de acesso." };
+  if (nome.length < 2 || nome.length > 100 || !emailValido.success || !NIVEIS_VALIDOS.includes(nivel)) {
+    return { error: "Preencha nome, um e-mail válido e o nível de acesso." };
   }
+  const email = emailValido.data;
 
   const admin = createSupabaseAdminClient();
 
@@ -48,7 +50,10 @@ export async function convidarUsuario(
   });
 
   if (insertError) {
-    return { error: "Convite enviado, mas houve um erro ao registrar o acesso. Avise o suporte." };
+    // Desfaz o convite para não deixar um cadastro "fantasma" no Auth.
+    console.error("convidarUsuario: falha ao registrar em usuarios_admin", insertError.message);
+    await admin.auth.admin.deleteUser(data.user.id);
+    return { error: "Não foi possível registrar o acesso. O convite foi cancelado, tente de novo." };
   }
 
   revalidatePath("/admin/usuarios");
@@ -57,6 +62,7 @@ export async function convidarUsuario(
 
 export async function reenviarConvite(email: string) {
   await exigirAdmin(["administrador"]);
+  if (!emailSchema.safeParse(email).success) return;
   const admin = createSupabaseAdminClient();
   await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/auth/set-password`,
@@ -85,6 +91,7 @@ export async function atualizarNivelAcesso(
   nivel: NivelAcesso
 ): Promise<UsuarioAcaoState> {
   await exigirAdmin(["administrador"]);
+  if (!idSchema.safeParse(id).success) return { error: "Usuário inválido." };
   if (!NIVEIS_VALIDOS.includes(nivel)) return { error: "Nível de acesso inválido." };
 
   const supabase = createSupabaseServerClient();
@@ -120,8 +127,9 @@ export async function atualizarNivelAcesso(
 // e-mail pode falhar).
 export async function excluirUsuarioAdmin(formData: FormData): Promise<UsuarioAcaoState> {
   const usuarioAtual = await exigirAdmin(["administrador"]);
-  const id = String(formData.get("id") ?? "");
-  if (!id) return {};
+  const idEntrada = idSchema.safeParse(campo(formData, "id"));
+  if (!idEntrada.success) return {};
+  const id = idEntrada.data;
 
   if (id === usuarioAtual.id) {
     return { error: "Você não pode excluir o seu próprio acesso." };
